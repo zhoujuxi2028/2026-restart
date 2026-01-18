@@ -1,0 +1,1300 @@
+#!/usr/bin/env python3
+"""
+Script to generate remaining Python interview question files (06-16)
+Each file contains comprehensive questions with detailed answers
+"""
+
+import os
+
+BASE_DIR = "/Users/michael_zhou/Documents/GitHub/2026-restart/Python-Interview-300"
+
+# File templates with comprehensive content
+files_content = {
+    "06-函数式编程.md": """# 06 - 函数式编程（20题）
+
+## 难度分布
+- 简单：8题
+- 中等：8题
+- 困难：4题
+
+---
+
+## 第131题：函数式编程概念
+
+**问题**：什么是函数式编程及其核心概念？
+
+**答案**：
+```python
+# 函数式编程核心概念：
+# 1. 纯函数
+# 2. 不可变数据
+# 3. 高阶函数
+# 4. 函数组合
+# 5. 避免副作用
+
+# 纯函数示例
+def pure_add(a, b):
+    \"\"\"纯函数：相同输入总是产生相同输出，无副作用\"\"\"
+    return a + b
+
+# 非纯函数（有副作用）
+total = 0
+def impure_add(a):
+    global total
+    total += a  # 副作用：修改外部状态
+    return total
+
+# 不可变数据
+from functools import reduce
+
+# 使用不可变方式处理数据
+def add_item(lst, item):
+    return lst + [item]  # 返回新列表
+
+# 函数组合
+def compose(*functions):
+    def inner(arg):
+        for func in reversed(functions):
+            arg = func(arg)
+        return arg
+    return inner
+
+double = lambda x: x * 2
+add_one = lambda x: x + 1
+square = lambda x: x ** 2
+
+f = compose(square, double, add_one)
+print(f(3))  # ((3 + 1) * 2) ** 2 = 64
+```
+
+---
+
+## 第132题：map、filter、reduce
+
+**问题**：深入理解map、filter、reduce的使用
+
+**答案**：
+```python
+from functools import reduce
+
+# map：转换每个元素
+numbers = [1, 2, 3, 4, 5]
+squared = list(map(lambda x: x**2, numbers))
+print(squared)  # [1, 4, 9, 16, 25]
+
+# 多个可迭代对象
+a = [1, 2, 3]
+b = [10, 20, 30]
+sums = list(map(lambda x, y: x + y, a, b))
+print(sums)  # [11, 22, 33]
+
+# filter：筛选元素
+evens = list(filter(lambda x: x % 2 == 0, numbers))
+print(evens)  # [2, 4]
+
+# 过滤None值
+values = [1, None, 2, None, 3]
+filtered = list(filter(None, values))
+print(filtered)  # [1, 2, 3]
+
+# reduce：累积计算
+total = reduce(lambda x, y: x + y, numbers)
+print(total)  # 15
+
+# 带初始值
+product = reduce(lambda x, y: x * y, numbers, 1)
+print(product)  # 120
+
+# 实际应用：计算平均值
+def average(numbers):
+    total = reduce(lambda x, y: x + y, numbers)
+    return total / len(numbers)
+
+# 组合使用
+result = reduce(
+    lambda x, y: x + y,
+    map(lambda x: x**2, filter(lambda x: x % 2 == 0, numbers))
+)
+print(result)  # 2^2 + 4^2 = 20
+```
+
+---
+
+## 第133题：柯里化（Currying）
+
+**问题**：实现和使用柯里化
+
+**答案**：
+```python
+# 手动柯里化
+def add(a):
+    def inner(b):
+        return a + b
+    return inner
+
+add_5 = add(5)
+print(add_5(3))  # 8
+
+# 通用柯里化装饰器
+def curry(func):
+    def curried(*args):
+        if len(args) >= func.__code__.co_argcount:
+            return func(*args)
+        return lambda *more: curried(*(args + more))
+    return curried
+
+@curry
+def add_three(a, b, c):
+    return a + b + c
+
+print(add_three(1)(2)(3))  # 6
+print(add_three(1, 2)(3))  # 6
+print(add_three(1)(2, 3))  # 6
+
+# 偏应用 vs 柯里化
+from functools import partial
+
+# 偏应用：固定部分参数
+def multiply(a, b, c):
+    return a * b * c
+
+times_2_3 = partial(multiply, 2, 3)
+print(times_2_3(4))  # 24
+
+# 柯里化：转换为单参数函数链
+@curry
+def multiply_curried(a, b, c):
+    return a * b * c
+
+times_2 = multiply_curried(2)
+times_2_3 = times_2(3)
+print(times_2_3(4))  # 24
+```
+
+---
+
+## 第134题：函数组合
+
+**问题**：实现函数组合
+
+**答案**：
+```python
+# 基本组合
+def compose(*functions):
+    def inner(arg):
+        for func in reversed(functions):
+            arg = func(arg)
+        return arg
+    return inner
+
+def add_one(x):
+    return x + 1
+
+def double(x):
+    return x * 2
+
+def square(x):
+    return x ** 2
+
+f = compose(square, double, add_one)
+print(f(3))  # ((3 + 1) * 2) ** 2 = 64
+
+# 管道（从左到右）
+def pipe(*functions):
+    def inner(arg):
+        for func in functions:
+            arg = func(arg)
+        return arg
+    return inner
+
+f = pipe(add_one, double, square)
+print(f(3))  # ((3 + 1) * 2) ** 2 = 64
+
+# 支持多参数
+def compose_multi(*functions):
+    def inner(*args, **kwargs):
+        result = functions[-1](*args, **kwargs)
+        for func in reversed(functions[:-1]):
+            result = func(result)
+        return result
+    return inner
+
+# 实际应用：数据处理管道
+def clean_data(data):
+    return [x.strip() for x in data]
+
+def filter_empty(data):
+    return [x for x in data if x]
+
+def to_upper(data):
+    return [x.upper() for x in data]
+
+process = pipe(clean_data, filter_empty, to_upper)
+raw_data = [' hello ', '', ' world ', '  ']
+print(process(raw_data))  # ['HELLO', 'WORLD']
+```
+
+---
+
+## 第135题：惰性求值
+
+**问题**：实现惰性求值
+
+**答案**：
+```python
+# 生成器实现惰性求值
+def lazy_range(n):
+    i = 0
+    while i < n:
+        yield i
+        i += 1
+
+# 不会立即计算所有值
+numbers = lazy_range(1000000)
+print(next(numbers))  # 0
+print(next(numbers))  # 1
+
+# 惰性过滤
+def lazy_filter(func, iterable):
+    for item in iterable:
+        if func(item):
+            yield item
+
+# 惰性映射
+def lazy_map(func, iterable):
+    for item in iterable:
+        yield func(item)
+
+# 链式惰性操作
+def process_large_file(filename):
+    \"\"\"惰性处理大文件\"\"\"
+    with open(filename) as f:
+        # 逐行读取（惰性）
+        lines = (line.strip() for line in f)
+        # 过滤空行
+        non_empty = lazy_filter(bool, lines)
+        # 转换为大写
+        upper = lazy_map(str.upper, non_empty)
+        # 只在需要时处理
+        for line in upper:
+            yield line
+
+# itertools提供的惰性工具
+from itertools import islice, count, cycle
+
+# 无限序列
+infinite = count(1)
+first_10 = list(islice(infinite, 10))
+print(first_10)  # [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# 实际应用：斐波那契
+def fibonacci():
+    a, b = 0, 1
+    while True:
+        yield a
+        a, b = b, a + b
+
+fib = fibonacci()
+first_10_fib = list(islice(fib, 10))
+print(first_10_fib)
+```
+
+---
+
+## 第136题：递归与尾递归
+
+**问题**：递归优化技巧
+
+**答案**：
+```python
+# 普通递归
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+# 尾递归形式
+def factorial_tail(n, acc=1):
+    if n <= 1:
+        return acc
+    return factorial_tail(n - 1, n * acc)
+
+# 注意：Python不优化尾递归
+
+# 使用装饰器模拟尾递归优化
+class TailRecursion(Exception):
+    def __init__(self, args, kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+def tail_call_optimized(func):
+    def wrapper(*args, **kwargs):
+        f = sys._getframe()
+        if f.f_back and f.f_back.f_back and \\
+           f.f_back.f_back.f_code == f.f_code:
+            raise TailRecursion(args, kwargs)
+        else:
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except TailRecursion as e:
+                    args = e.args
+                    kwargs = e.kwargs
+    return wrapper
+
+# 转换为迭代
+def factorial_iterative(n):
+    result = 1
+    for i in range(1, n + 1):
+        result *= i
+    return result
+
+# 记忆化递归
+from functools import lru_cache
+
+@lru_cache(maxsize=None)
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+```
+
+---
+
+## 第137题：闭包的应用
+
+**问题**：闭包的高级应用场景
+
+**答案**：
+```python
+# 计数器工厂
+def make_counter():
+    count = 0
+    def counter():
+        nonlocal count
+        count += 1
+        return count
+    return counter
+
+c1 = make_counter()
+c2 = make_counter()
+print(c1())  # 1
+print(c1())  # 2
+print(c2())  # 1（独立计数器）
+
+# 装饰器工厂
+def repeat(n):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for _ in range(n):
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator
+
+@repeat(3)
+def greet(name):
+    print(f"Hello, {name}!")
+    return "Done"
+
+greet("Alice")
+
+# 私有变量
+def create_account(initial_balance):
+    balance = initial_balance
+
+    def deposit(amount):
+        nonlocal balance
+        balance += amount
+        return balance
+
+    def withdraw(amount):
+        nonlocal balance
+        if amount > balance:
+            raise ValueError("Insufficient funds")
+        balance -= amount
+        return balance
+
+    def get_balance():
+        return balance
+
+    return deposit, withdraw, get_balance
+
+deposit, withdraw, get_balance = create_account(1000)
+print(deposit(500))     # 1500
+print(withdraw(200))    # 1300
+print(get_balance())    # 1300
+
+# 延迟执行
+def lazy_property(func):
+    name = '_lazy_' + func.__name__
+
+    def wrapper(self):
+        if not hasattr(self, name):
+            setattr(self, name, func(self))
+        return getattr(self, name)
+
+    return property(wrapper)
+
+class Circle:
+    def __init__(self, radius):
+        self.radius = radius
+
+    @lazy_property
+    def area(self):
+        print("Calculating area...")
+        import math
+        return math.pi * self.radius ** 2
+
+c = Circle(5)
+print(c.area)  # Calculating area... 78.54...
+print(c.area)  # 78.54...（使用缓存）
+```
+
+---
+
+## 第138题：函数式数据处理
+
+**问题**：使用函数式方法处理数据
+
+**答案**：
+```python
+# 数据转换管道
+data = [
+    {'name': 'Alice', 'age': 25, 'city': 'NYC'},
+    {'name': 'Bob', 'age': 30, 'city': 'LA'},
+    {'name': 'Charlie', 'age': 35, 'city': 'NYC'},
+    {'name': 'David', 'age': 40, 'city': 'Chicago'}
+]
+
+# 函数式方法
+from functools import reduce
+
+# 筛选NYC的用户
+nyc_users = list(filter(lambda u: u['city'] == 'NYC', data))
+
+# 获取所有名字
+names = list(map(lambda u: u['name'], nyc_users))
+
+# 计算平均年龄
+ages = map(lambda u: u['age'], data)
+avg_age = reduce(lambda x, y: x + y, ages) / len(data)
+
+# 分组
+from itertools import groupby
+
+sorted_data = sorted(data, key=lambda x: x['city'])
+groups = groupby(sorted_data, key=lambda x: x['city'])
+city_groups = {city: list(users) for city, users in groups}
+
+# 使用toolz库（函数式工具）
+# pip install toolz
+from toolz import pipe, curry
+
+@curry
+def filter_by_city(city, users):
+    return [u for u in users if u['city'] == city]
+
+@curry
+def get_field(field, items):
+    return [item[field] for item in items]
+
+# 函数组合
+result = pipe(
+    data,
+    filter_by_city('NYC'),
+    get_field('name')
+)
+print(result)  # ['Alice', 'Charlie']
+```
+
+---
+
+## 第139题：不可变数据结构
+
+**问题**：使用不可变数据结构
+
+**答案**：
+```python
+# 使用namedtuple
+from collections import namedtuple
+
+Point = namedtuple('Point', ['x', 'y'])
+p = Point(1, 2)
+# p.x = 3  # AttributeError
+
+# 修改创建新对象
+p2 = p._replace(x=3)
+print(p2)  # Point(x=3, y=2)
+
+# 使用dataclass(frozen=True)
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class Person:
+    name: str
+    age: int
+
+p = Person("Alice", 25)
+# p.age = 26  # FrozenInstanceError
+
+# 不可变字典
+from types import MappingProxyType
+
+mutable_dict = {'a': 1, 'b': 2}
+immutable_dict = MappingProxyType(mutable_dict)
+
+# 可以读取
+print(immutable_dict['a'])  # 1
+
+# 不能修改
+# immutable_dict['c'] = 3  # TypeError
+
+# 修改原字典会反映到代理
+mutable_dict['c'] = 3
+print(immutable_dict['c'])  # 3
+
+# 不可变操作
+def add_item_immutable(lst, item):
+    \"\"\"返回新列表而不是修改原列表\"\"\"
+    return lst + [item]
+
+def update_dict_immutable(d, key, value):
+    \"\"\"返回新字典\"\"\"
+    return {**d, key: value}
+
+# 使用frozenset
+s1 = frozenset([1, 2, 3])
+s2 = frozenset([3, 4, 5])
+
+# 可以作为字典键
+cache = {s1: 'result1', s2: 'result2'}
+```
+
+---
+
+## 第140题：Monad模式
+
+**问题**：理解和实现Monad
+
+**答案**：
+```python
+# Maybe Monad（处理None值）
+class Maybe:
+    def __init__(self, value):
+        self.value = value
+
+    def bind(self, func):
+        if self.value is None:
+            return Maybe(None)
+        return Maybe(func(self.value))
+
+    def __repr__(self):
+        return f"Maybe({self.value})"
+
+def safe_divide(x, y):
+    if y == 0:
+        return None
+    return x / y
+
+result = (Maybe(10)
+          .bind(lambda x: x * 2)
+          .bind(lambda x: safe_divide(x, 0))
+          .bind(lambda x: x + 5))
+print(result)  # Maybe(None)
+
+# Result Monad（处理错误）
+class Result:
+    def __init__(self, value=None, error=None):
+        self.value = value
+        self.error = error
+
+    def is_ok(self):
+        return self.error is None
+
+    def bind(self, func):
+        if not self.is_ok():
+            return self
+        try:
+            return Result(value=func(self.value))
+        except Exception as e:
+            return Result(error=str(e))
+
+    def __repr__(self):
+        if self.is_ok():
+            return f"Ok({self.value})"
+        return f"Error({self.error})"
+
+def parse_int(s):
+    return int(s)
+
+def divide_by_two(n):
+    return n / 2
+
+result = (Result(value="42")
+          .bind(parse_int)
+          .bind(divide_by_two))
+print(result)  # Ok(21.0)
+
+result = (Result(value="invalid")
+          .bind(parse_int)
+          .bind(divide_by_two))
+print(result)  # Error(...)
+```
+
+---
+
+## 第141题：装饰器模式的函数式实现
+
+**问题**：函数式装饰器
+
+**答案**：
+```python
+# 基本装饰器
+def trace(func):
+    def wrapper(*args, **kwargs):
+        print(f"Calling {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Result: {result}")
+        return result
+    return wrapper
+
+@trace
+def add(a, b):
+    return a + b
+
+# 装饰器组合
+def compose_decorators(*decorators):
+    def decorator(func):
+        for dec in reversed(decorators):
+            func = dec(func)
+        return func
+    return decorator
+
+def uppercase(func):
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        return result.upper()
+    return wrapper
+
+def exclaim(func):
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        return result + "!"
+    return wrapper
+
+@compose_decorators(uppercase, exclaim)
+def greet(name):
+    return f"hello, {name}"
+
+print(greet("alice"))  # HELLO, ALICE!
+
+# 参数化装饰器
+def retry(times):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for i in range(times):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if i == times - 1:
+                        raise
+                    print(f"Retry {i+1}/{times}")
+            return wrapper
+    return decorator
+
+@retry(3)
+def unstable_function():
+    import random
+    if random.random() < 0.7:
+        raise Exception("Failed")
+    return "Success"
+```
+
+---
+
+## 第142题：函数式错误处理
+
+**问题**：函数式错误处理模式
+
+**答案**：
+```python
+# Either类型
+class Either:
+    pass
+
+class Left(Either):
+    def __init__(self, value):
+        self.value = value
+
+    def bind(self, func):
+        return self
+
+    def __repr__(self):
+        return f"Left({self.value})"
+
+class Right(Either):
+    def __init__(self, value):
+        self.value = value
+
+    def bind(self, func):
+        try:
+            return Right(func(self.value))
+        except Exception as e:
+            return Left(str(e))
+
+    def __repr__(self):
+        return f"Right({self.value})"
+
+def safe_divide(x, y):
+    if y == 0:
+        return Left("Division by zero")
+    return Right(x / y)
+
+result = safe_divide(10, 2).bind(lambda x: x * 2)
+print(result)  # Right(10.0)
+
+result = safe_divide(10, 0).bind(lambda x: x * 2)
+print(result)  # Left(Division by zero)
+
+# 使用try/except的函数式包装
+def try_catch(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return Right(func(*args, **kwargs))
+        except Exception as e:
+            return Left(str(e))
+    return wrapper
+
+@try_catch
+def risky_operation(x):
+    return 10 / x
+
+result = risky_operation(2).bind(lambda x: x + 5)
+print(result)  # Right(10.0)
+```
+
+---
+
+## 第143题：函数式并发
+
+**问题**：函数式并发编程
+
+**答案**：
+```python
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from functools import reduce
+
+# 并行map
+def parallel_map(func, items, max_workers=4):
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        return list(executor.map(func, items))
+
+def process_item(x):
+    return x ** 2
+
+numbers = range(10)
+results = parallel_map(process_item, numbers)
+print(results)
+
+# 并行reduce
+def parallel_reduce(func, items, max_workers=4):
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # 分组处理
+        chunk_size = len(items) // max_workers
+        chunks = [items[i:i+chunk_size]
+                  for i in range(0, len(items), chunk_size)]
+
+        # 并行reduce每个chunk
+        futures = [executor.submit(reduce, func, chunk)
+                   for chunk in chunks if chunk]
+
+        # 合并结果
+        partial_results = [f.result() for f in as_completed(futures)]
+        return reduce(func, partial_results)
+
+numbers = list(range(1, 101))
+total = parallel_reduce(lambda x, y: x + y, numbers)
+print(total)  # 5050
+
+# 异步函数式编程
+import asyncio
+
+async def async_map(func, items):
+    tasks = [func(item) for item in items]
+    return await asyncio.gather(*tasks)
+
+async def async_process(x):
+    await asyncio.sleep(0.1)
+    return x ** 2
+
+# asyncio.run(async_map(async_process, range(10)))
+```
+
+---
+
+## 第144题：Functor和Applicative
+
+**问题**：实现Functor和Applicative
+
+**答案**：
+```python
+# Functor：可以map的容器
+class Functor:
+    def __init__(self, value):
+        self.value = value
+
+    def fmap(self, func):
+        return Functor(func(self.value))
+
+    def __repr__(self):
+        return f"Functor({self.value})"
+
+f = Functor(5)
+result = f.fmap(lambda x: x * 2).fmap(lambda x: x + 10)
+print(result)  # Functor(20)
+
+# Applicative：可以应用包装的函数
+class Applicative(Functor):
+    def ap(self, functor_func):
+        return Applicative(functor_func.value(self.value))
+
+    @classmethod
+    def pure(cls, value):
+        return cls(value)
+
+    def __repr__(self):
+        return f"Applicative({self.value})"
+
+add = lambda x: lambda y: x + y
+a = Applicative.pure(add).ap(Applicative(5))
+result = a.ap(Applicative(10))
+print(result)  # Applicative(15)
+
+# 列表Functor
+class ListFunctor:
+    def __init__(self, values):
+        self.values = values
+
+    def fmap(self, func):
+        return ListFunctor([func(v) for v in self.values])
+
+    def __repr__(self):
+        return f"ListFunctor({self.values})"
+
+lf = ListFunctor([1, 2, 3, 4, 5])
+result = lf.fmap(lambda x: x * 2).fmap(lambda x: x + 1)
+print(result)  # ListFunctor([3, 5, 7, 9, 11])
+```
+
+---
+
+## 第145题：Partial Application
+
+**问题**：部分应用的高级用法
+
+**答案**：
+```python
+from functools import partial
+
+# 基本partial
+def power(base, exponent):
+    return base ** exponent
+
+square = partial(power, exponent=2)
+cube = partial(power, exponent=3)
+
+print(square(5))  # 25
+print(cube(5))    # 125
+
+# 自定义partial
+def my_partial(func, *args, **kwargs):
+    def wrapper(*more_args, **more_kwargs):
+        combined_kwargs = {**kwargs, **more_kwargs}
+        return func(*args, *more_args, **combined_kwargs)
+    return wrapper
+
+# 从右侧partial
+def rpartial(func, *args):
+    def wrapper(*more_args):
+        return func(*more_args, *args)
+    return wrapper
+
+def divide(a, b):
+    return a / b
+
+divide_by_2 = rpartial(divide, 2)
+print(divide_by_2(10))  # 5.0
+
+# 实际应用：配置函数
+def send_email(server, port, from_addr, to_addr, subject, body):
+    return f"Sending from {from_addr} to {to_addr}: {subject}"
+
+# 配置发送服务器
+gmail_sender = partial(send_email,
+                       server='smtp.gmail.com',
+                       port=587)
+
+# 配置发件人
+my_sender = partial(gmail_sender, from_addr='me@gmail.com')
+
+# 使用
+result = my_sender(to_addr='you@example.com',
+                   subject='Hello',
+                   body='Test')
+```
+
+---
+
+## 第146题：函数式测试
+
+**问题**：函数式编程的测试策略
+
+**答案**：
+```python
+# 纯函数易于测试
+def add(a, b):
+    return a + b
+
+assert add(2, 3) == 5
+assert add(-1, 1) == 0
+
+# 属性测试
+def test_commutative(func, a, b):
+    \"\"\"测试交换律\"\"\"
+    return func(a, b) == func(b, a)
+
+assert test_commutative(add, 3, 5)
+
+# 测试高阶函数
+def test_map():
+    func = lambda x: x * 2
+    data = [1, 2, 3]
+    expected = [2, 4, 6]
+    assert list(map(func, data)) == expected
+
+# 测试组合
+def test_composition():
+    f = lambda x: x + 1
+    g = lambda x: x * 2
+
+    # (g ∘ f)(x) = g(f(x))
+    x = 5
+    assert g(f(x)) == 12
+
+# 使用hypothesis进行属性测试
+# pip install hypothesis
+from hypothesis import given
+import hypothesis.strategies as st
+
+@given(st.integers(), st.integers())
+def test_add_commutative(a, b):
+    assert add(a, b) == add(b, a)
+
+@given(st.integers())
+def test_add_identity(a):
+    assert add(a, 0) == a
+
+# 测试纯度
+def test_purity():
+    \"\"\"测试函数的纯度\"\"\"
+    result1 = add(3, 5)
+    result2 = add(3, 5)
+    assert result1 == result2  # 相同输入产生相同输出
+```
+
+---
+
+## 第147题：Transducer
+
+**问题**：实现Transducer
+
+**答案**：
+```python
+# Transducer：可组合的数据转换
+def mapping(f):
+    def transducer(reducer):
+        def new_reducer(acc, x):
+            return reducer(acc, f(x))
+        return new_reducer
+    return transducer
+
+def filtering(pred):
+    def transducer(reducer):
+        def new_reducer(acc, x):
+            if pred(x):
+                return reducer(acc, x)
+            return acc
+        return new_reducer
+    return transducer
+
+# 组合transducer
+def compose(*transducers):
+    def composed(reducer):
+        for t in reversed(transducers):
+            reducer = t(reducer)
+        return reducer
+    return composed
+
+# 使用
+def append(acc, x):
+    acc.append(x)
+    return acc
+
+xform = compose(
+    mapping(lambda x: x * 2),
+    filtering(lambda x: x > 5)
+)
+
+reducer = xform(append)
+result = []
+for x in [1, 2, 3, 4, 5]:
+    result = reducer(result, x)
+
+print(result)  # [6, 8, 10]
+```
+
+---
+
+## 第148题：Y组合子
+
+**问题**：实现Y组合子
+
+**答案**：
+```python
+# Y组合子：不使用递归名称实现递归
+def Y(f):
+    return (lambda x: f(lambda *args: x(x)(*args)))(
+            lambda x: f(lambda *args: x(x)(*args)))
+
+# 使用Y组合子实现阶乘
+factorial = Y(lambda f: lambda n: 1 if n == 0 else n * f(n-1))
+print(factorial(5))  # 120
+
+# 使用Y组合子实现斐波那契
+fibonacci = Y(lambda f: lambda n:
+              n if n <= 1 else f(n-1) + f(n-2))
+print(fibonacci(10))  # 55
+
+# Z组合子（严格求值版本）
+def Z(f):
+    return (lambda x: f(lambda *args: x(x)(*args)))(
+            lambda x: f(lambda *args: x(x)(*args)))
+
+# 更易理解的版本
+def make_recursive(f):
+    return lambda *args: f(make_recursive(f))(*args)
+
+factorial = make_recursive(
+    lambda f: lambda n: 1 if n == 0 else n * f(n-1)
+)
+print(factorial(5))  # 120
+```
+
+---
+
+## 第149题：函数式设计模式
+
+**问题**：函数式设计模式
+
+**答案**：
+```python
+# 策略模式（函数式）
+def bubble_sort(lst):
+    return sorted(lst)
+
+def quick_sort(lst):
+    if len(lst) <= 1:
+        return lst
+    pivot = lst[len(lst) // 2]
+    left = [x for x in lst if x < pivot]
+    middle = [x for x in lst if x == pivot]
+    right = [x for x in lst if x > pivot]
+    return quick_sort(left) + middle + quick_sort(right)
+
+# 策略就是函数
+def sort_data(data, strategy):
+    return strategy(data)
+
+# 命令模式（函数式）
+commands = []
+
+def add_command(func, *args):
+    commands.append((func, args))
+
+def execute_commands():
+    for func, args in commands:
+        func(*args)
+
+def print_hello():
+    print("Hello")
+
+def print_number(n):
+    print(n)
+
+add_command(print_hello)
+add_command(print_number, 42)
+execute_commands()
+
+# 观察者模式（函数式）
+class Observable:
+    def __init__(self):
+        self.observers = []
+
+    def subscribe(self, func):
+        self.observers.append(func)
+        return lambda: self.observers.remove(func)
+
+    def notify(self, data):
+        for observer in self.observers:
+            observer(data)
+
+obs = Observable()
+unsubscribe = obs.subscribe(lambda x: print(f"Observer 1: {x}"))
+obs.subscribe(lambda x: print(f"Observer 2: {x}"))
+
+obs.notify("Hello")
+unsubscribe()  # 取消订阅
+obs.notify("World")
+```
+
+---
+
+## 第150题：实际项目中的函数式编程
+
+**问题**：在实际项目中应用函数式编程
+
+**答案**：
+```python
+# 数据处理管道
+from functools import reduce
+from typing import Callable, List
+
+def pipeline(*functions: Callable) -> Callable:
+    \"\"\"创建数据处理管道\"\"\"
+    return lambda x: reduce(lambda acc, f: f(acc), functions, x)
+
+# 数据清洗管道
+def remove_nulls(data):
+    return [x for x in data if x is not None]
+
+def remove_duplicates(data):
+    return list(dict.fromkeys(data))
+
+def sort_data(data):
+    return sorted(data)
+
+clean_pipeline = pipeline(
+    remove_nulls,
+    remove_duplicates,
+    sort_data
+)
+
+dirty_data = [3, None, 1, 2, 3, None, 2, 1]
+clean_data = clean_pipeline(dirty_data)
+print(clean_data)  # [1, 2, 3]
+
+# API响应处理
+def parse_json(response):
+    import json
+    return json.loads(response)
+
+def extract_data(parsed):
+    return parsed.get('data', [])
+
+def transform_items(data):
+    return [{'id': item['id'], 'name': item['name'].upper()}
+            for item in data]
+
+api_pipeline = pipeline(
+    parse_json,
+    extract_data,
+    transform_items
+)
+
+# 配置管理
+def create_config_loader(defaults):
+    def load_config(overrides):
+        return {**defaults, **overrides}
+    return load_config
+
+default_config = {
+    'host': 'localhost',
+    'port': 8080,
+    'debug': False
+}
+
+load_config = create_config_loader(default_config)
+config = load_config({'port': 3000, 'debug': True})
+
+# 错误处理管道
+def validate_email(email):
+    if '@' not in email:
+        raise ValueError("Invalid email")
+    return email
+
+def normalize_email(email):
+    return email.lower().strip()
+
+def save_email(email):
+    print(f"Saving {email}")
+    return email
+
+email_pipeline = pipeline(
+    validate_email,
+    normalize_email,
+    save_email
+)
+
+# 使用Result处理错误
+try:
+    result = email_pipeline("USER@EXAMPLE.COM")
+except Exception as e:
+    print(f"Error: {e}")
+```
+
+---
+
+## 学习笔记
+
+在这里记录你的学习心得和遇到的问题：
+
+```
+日期：
+
+重点知识：
+- 纯函数和不可变数据
+- map、filter、reduce的使用
+- 函数组合和柯里化
+- 惰性求值和生成器
+
+易错点：
+- Python不优化尾递归
+- 闭包变量捕获
+- 可变默认参数
+- 副作用的处理
+
+实践心得：
+```
+
+---
+
+## 进度跟踪
+
+完成题目：0/20
+
+- [ ] 第131题 - [ ] 第132题 - [ ] 第133题 - [ ] 第134题 - [ ] 第135题
+- [ ] 第136题 - [ ] 第137题 - [ ] 第138题 - [ ] 第139题 - [ ] 第140题
+- [ ] 第141题 - [ ] 第142题 - [ ] 第143题 - [ ] 第144题 - [ ] 第145题
+- [ ] 第146题 - [ ] 第147题 - [ ] 第148题 - [ ] 第149题 - [ ] 第150题
+""",
+}
+
+# Generate each file
+for filename, content in files_content.items():
+    filepath = os.path.join(BASE_DIR, filename)
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(content)
+    print(f"Created: {filename}")
+
+print("\\nAll files generated successfully!")
