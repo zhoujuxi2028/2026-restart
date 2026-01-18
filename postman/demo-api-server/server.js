@@ -105,10 +105,63 @@ app.get('/items/:id', (req, res) => {
   });
 });
 
+// PUT /items/:id - 更新 item
+app.put('/items/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const { name } = req.body;
+
+  if (!name) {
+    console.log(`[${new Date().toISOString()}] ERROR: Missing 'name' in request body for PUT /items/${id}`);
+    return res.status(400).json({ message: 'name is required' });
+  }
+
+  console.log(`[${new Date().toISOString()}] Updating item with ID: ${id}`);
+  db.run("UPDATE items SET name = ? WHERE id = ?", [name, id], function(err) {
+    if (err) {
+      console.error(`[${new Date().toISOString()}] ERROR updating item: ${err.message}`);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+    if (this.changes === 0) {
+      console.log(`[${new Date().toISOString()}] ERROR: Item with ID ${id} not found for update`);
+      return res.status(404).json({ message: 'Item not found' });
+    }
+    // 获取更新后的 item
+    db.get("SELECT * FROM items WHERE id = ?", [id], (err, row) => {
+      if (err) {
+        console.error(`[${new Date().toISOString()}] ERROR fetching updated item: ${err.message}`);
+        return res.status(500).json({ message: 'Internal server error' });
+      }
+      console.log(`[${new Date().toISOString()}] Updated item: ${JSON.stringify(row)}`);
+      res.status(200).json(row);
+    });
+  });
+});
+
+// DELETE /items/:id - 删除 item
+app.delete('/items/:id', (req, res) => {
+  const id = Number(req.params.id);
+  console.log(`[${new Date().toISOString()}] Deleting item with ID: ${id}`);
+  db.run("DELETE FROM items WHERE id = ?", [id], function(err) {
+    if (err) {
+      console.error(`[${new Date().toISOString()}] ERROR deleting item: ${err.message}`);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+    if (this.changes === 0) {
+      console.log(`[${new Date().toISOString()}] ERROR: Item with ID ${id} not found for deletion`);
+      return res.status(404).json({ message: 'Item not found' });
+    }
+    console.log(`[${new Date().toISOString()}] Deleted item with ID: ${id}`);
+    res.status(200).json({ message: 'Item deleted successfully' });
+  });
+});
+
 // 启动服务
 app.listen(port, () => {
   console.log(`[${new Date().toISOString()}] Demo API server is running at http://localhost:${port}`);
 });
+
+// 导出app用于测试
+module.exports = app;
 
 // 优雅关闭数据库连接
 process.on('SIGINT', () => {
