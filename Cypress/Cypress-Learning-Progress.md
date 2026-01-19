@@ -14,44 +14,479 @@
 **目标**：理解 Cypress 是什么，完成基本环境搭建
 
 ### Day 1
-- [ ] 了解 Cypress 的特点和优势
-  - [ ] 阅读官方文档介绍部分
-  - [ ] 了解 Cypress 与 Selenium、Playwright 的区别
-  - [ ] 理解 Cypress 的适用场景和限制
-- [ ] 安装 Cypress
-  - [ ] 创建测试项目文件夹
-  - [ ] 使用 `npm init -y` 初始化项目
-  - [ ] 运行 `npm install cypress --save-dev`
+- [x] 了解 Cypress 的特点和优势
+  - [x] 阅读官方文档介绍部分
+  - [x] 了解 Cypress 与 Selenium、Playwright 的区别
+  - [x] 理解 Cypress 的适用场景和限制
+- [x] 安装 Cypress
+  - [x] 创建测试项目文件夹
+  - [x] 使用 `npm init -y` 初始化项目
+  - [x] 运行 `npm install cypress --save-dev`
 
 **学习笔记**：
+
+## Cypress 核心特点和优势
+
+### 🔥 独特的架构设计
+- **浏览器内执行**：Cypress 在浏览器内部运行，而不是像 Selenium 那样从外部控制
+- **直接访问 DOM**：可以直接访问 DOM、网络请求、本地存储和浏览器 API
+- **无网络延迟**：命令执行没有网络延迟，测试运行更快更稳定
+
+### 🛠️ 一体化测试解决方案
+- **内置工具齐全**：集成了测试框架、断言库、Mock 和 Stub 功能
+- **无需额外配置**：不需要像传统方案那样安装 10+ 个独立工具（Mocha、Jasmine、Selenium、Chai 等）
+- **开箱即用**：快速setup，无需驱动程序配置
+
+### ⚡ 智能等待机制
+- **自动等待**：自动等待应用到达期望状态，无需手动配置等待时间
+- **内置重试**：智能重试机制，减少因时序问题导致的测试失败
+- **消除 Flaky Tests**：相比传统工具，不稳定测试减少 67%
+
+### 🎯 开发者友好体验
+- **强大的调试功能**：Time Travel 调试、实时预览、自动截图
+- **清晰的错误信息**：数百种自定义错误消息，精确定位问题
+- **可视化 UI**：丰富的测试运行界面，显示命令执行、断言、网络请求等
+
+## Cypress vs 其他测试框架对比（2026年）
+
+### 📊 性能对比
+- **执行速度**：Playwright > Cypress > Selenium（Playwright 比 Selenium 快 42%）
+- **稳定性**：Playwright 和 Cypress 都比 Selenium 更稳定
+- **市场满意度**：Cypress 满意度 92%（State of JS 2021）
+
+### 🔄 架构差异
+| 特性 | Cypress | Selenium | Playwright |
+|------|---------|----------|------------|
+| 执行位置 | 浏览器内部 | 外部控制 | 外部控制 |
+| 语言支持 | 仅 JavaScript | 多语言 | JS/Python/Java/.NET |
+| 浏览器支持 | Chrome/Firefox/Edge | 全浏览器 | Chrome/Firefox/Safari |
+| 并行执行 | 需配置 | 支持 | 内置支持 |
+| 移动测试 | 不支持 | 需 Appium | 设备模拟 |
+
+### 🎯 选择建议
+- **选择 Cypress 如果**：
+  - 主要使用 JavaScript 开发
+  - 注重开发者体验和快速开发周期
+  - 测试现代 SPA 应用
+  - 团队规模中小，需要快速上手
+
+- **选择 Playwright 如果**：
+  - 需要全面的跨浏览器支持
+  - 要求最快的执行速度
+  - 支持多种编程语言
+  - 需要移动设备模拟
+
+- **选择 Selenium 如果**：
+  - 大型企业级项目
+  - 需要支持 IE 等老旧浏览器
+  - 多语言团队
+  - 已有成熟的 Selenium 生态
+
+### ⚠️ Cypress 限制
+- **浏览器支持**：不支持 Safari 和 IE
+- **多窗口限制**：不能处理多标签页、弹窗、OAuth 流程
+- **语言限制**：仅支持 JavaScript/TypeScript
+- **移动应用**：不支持原生移动应用测试
+
+### 📈 当前版本信息
+- 已安装版本：Cypress 15.8.2
+- Electron 版本：37.6.0
+- Node 版本：22.19.0
+
+**总结**：Cypress 是现代 Web 应用 E2E 测试的优秀选择，特别适合 JavaScript 优先的团队和项目。其独特的浏览器内执行架构提供了卓越的开发者体验和测试稳定性。
 
 
 ---
 
 ### Day 2
-- [ ] 配置 Cypress
-  - [ ] 运行 `npx cypress open` 查看 Cypress Test Runner
-  - [ ] 了解项目结构（cypress/、cypress.config.js）
-  - [ ] 运行官方示例测试
-- [ ] 编写第一个测试
-  - [ ] 创建 `cypress/e2e/first-test.cy.js`
-  - [ ] 使用 `describe` 和 `it` 组织测试
-  - [ ] 测试访问一个网站（如 https://example.cypress.io）
+- [x] 配置 Cypress
+  - [x] 运行 `npx cypress open` 查看 Cypress Test Runner
+  - [x] 了解项目结构（cypress/、cypress.config.js）
+  - [x] 运行官方示例测试
+- [x] 编写第一个测试
+  - [x] 创建 `cypress/e2e/michael-test.cy.js`
+  - [x] 使用 `describe` 和 `it` 组织测试
+  - [x] 测试访问一个网站（如 https://example.cypress.io）
 
 **学习笔记**：
+
+## Cypress 项目结构
+
+### 生成的文件夹和文件
+```
+Cypress/
+├── cypress/
+│   ├── e2e/              # 测试文件目录
+│   ├── fixtures/         # 测试数据文件（JSON）
+│   └── support/          # 自定义命令和全局配置
+│       ├── commands.js   # 自定义命令
+│       └── e2e.js       # E2E 全局配置
+├── cypress.config.js     # Cypress 配置文件
+└── package.json
+```
+
+### 测试文件命名规范
+- 必须以 `.cy.js` 结尾
+- 放在 `cypress/e2e/` 目录下
+- 使用描述性名称（如 `login.cy.js`、`checkout.cy.js`）
+
+## 测试代码结构
+
+### 基本语法
+```javascript
+describe('测试套件名称', () => {
+  it('测试用例描述', () => {
+    // 测试步骤
+  })
+})
+```
+
+### 关键概念
+- **`describe()`**：测试套件，用于分组相关测试
+- **`it()`**：测试用例，描述一个具体的测试场景
+- **`cy.`**：所有 Cypress 命令都以此开头
+
+## 常用 Cypress 命令（Day 2）
+
+### 导航和断言
+| 命令 | 作用 | 示例 |
+|------|------|------|
+| `cy.visit()` | 访问 URL | `cy.visit('https://example.com')` |
+| `cy.title()` | 获取页面标题 | `cy.title().should('include', 'Home')` |
+| `cy.url()` | 获取当前 URL | `cy.url().should('include', '/login')` |
+
+### 元素选择
+| 命令 | 作用 | 示例 |
+|------|------|------|
+| `cy.get()` | 通过 CSS 选择器获取元素 | `cy.get('.btn-primary')` |
+| `cy.contains()` | 通过文本内容查找元素 | `cy.contains('Submit')` |
+
+### 交互操作
+| 命令 | 作用 | 示例 |
+|------|------|------|
+| `.click()` | 点击元素 | `cy.get('button').click()` |
+| `.type()` | 输入文本 | `cy.get('input').type('Hello')` |
+| `.should()` | 断言验证 | `.should('have.value', 'test')` |
+
+## Cypress Test Runner 界面
+
+### 界面组成
+1. **左侧面板（Command Log）**
+   - 显示所有执行的命令
+   - 绿色勾号表示通过
+   - 红色叉号表示失败
+   - 可以点击命令查看该时刻的状态
+
+2. **右侧面板（Application Preview）**
+   - 显示被测试的应用页面
+   - 实时更新测试执行状态
+
+3. **顶部工具栏**
+   - 浏览器选择器
+   - 测试执行时间
+   - 截图/视频控制
+
+### Time Travel 调试
+- **核心功能**：点击左侧命令，右侧会显示该命令执行时的页面状态
+- **用途**：精确定位问题发生的时刻
+- **优势**：无需重新运行测试就能查看历史状态
+
+## 第一个完整测试示例
+
+```javascript
+describe('我的第一个 Cypress 测试', () => {
+  it('应该能访问网站并验证标题', () => {
+    // 1. 访问测试网站
+    cy.visit('https://example.cypress.io')
+
+    // 2. 验证页面标题
+    cy.title().should('include', 'Kitchen Sink')
+
+    // 3. 查找并点击链接
+    cy.contains('type').click()
+
+    // 4. 验证 URL 变化
+    cy.url().should('include', '/commands/actions')
+
+    // 5. 输入文本并验证
+    cy.get('.action-email')
+      .type('test@example.com')
+      .should('have.value', 'test@example.com')
+  })
+})
+```
+
+## 重要特性
+
+### 🔥 自动重载
+- 保存文件后，Cypress 自动重新运行测试
+- 无需手动刷新
+
+### 🔗 命令链式调用
+```javascript
+cy.get('.email')
+  .type('test@example.com')
+  .should('have.value', 'test@example.com')
+```
+
+### ⏱️ 自动等待
+- Cypress 自动等待元素出现
+- 自动等待动画完成
+- 无需手动添加 `sleep` 或 `wait`
+
+## 总结
+
+今天学习了：
+1. ✅ Cypress 项目结构和配置
+2. ✅ 如何创建和运行测试
+3. ✅ `describe` 和 `it` 的使用
+4. ✅ 基本的 Cypress 命令（visit、get、contains、click、type、should）
+5. ✅ Time Travel 调试功能
+6. ✅ 链式命令和自动等待机制
 
 
 ---
 
 ### Day 3
-- [ ] 基本命令练习
-  - [ ] `cy.visit()` - 访问不同页面
-  - [ ] `cy.get()` - 获取元素
-  - [ ] `.click()` - 点击操作
-  - [ ] `.should()` - 简单断言
-- [ ] 复习和总结第一阶段
+- [x] 基本命令练习
+  - [x] `cy.visit()` - 访问不同页面
+  - [x] `cy.get()` - 获取元素
+  - [x] `.click()` - 点击操作
+  - [x] `.should()` - 简单断言
+- [x] 复习和总结第一阶段
 
 **学习笔记**：
+
+## Day 3: 基本命令深度掌握
+
+### 🎯 今天的学习目标
+1. **系统性掌握**四个核心命令的各种使用场景
+2. **从基础到进阶**的渐进式练习
+3. **实战场景模拟**，为第二阶段做准备
+4. **第一阶段总结**，巩固所有基础知识
+
+### 📁 创建的练习文件
+
+#### 1. `day3-basic-commands.cy.js` - 系统基础练习
+```javascript
+describe('Day 3: 基本命令深度练习', () => {
+  // 5个练习模块，25个测试用例
+  // 练习 1: cy.visit() 深度掌握 (4个用例)
+  // 练习 2: cy.get() 选择器大全 (5个用例)
+  // 练习 3: .click() 交互操作 (5个用例)
+  // 练习 4: .should() 断言大全 (7个用例)
+  // 练习 5: 综合实战练习 (3个用例)
+  // 第一阶段复习总结 (1个用例)
+})
+```
+
+#### 2. `day3-challenges.cy.js` - 进阶挑战练习
+```javascript
+describe('Day 3: 挑战练习 - 实战场景', () => {
+  // 5个挑战模块，13个测试用例
+  // 挑战 1: 复杂表单操作 (2个用例)
+  // 挑战 2: 动态内容处理 (2个用例)
+  // 挑战 3: 错误处理技巧 (2个用例)
+  // 挑战 4: 最佳实践应用 (3个用例)
+  // 挑战 5: 真实项目场景模拟 (3个用例)
+})
+```
+
+### 🔧 cy.visit() - 页面访问精通
+
+| 场景 | 语法示例 | 学习要点 |
+|------|----------|----------|
+| 基本访问 | `cy.visit('https://example.com')` | URL 访问和验证 |
+| 子页面访问 | `cy.visit('/commands/actions')` | 相对路径和绝对路径 |
+| 带参数访问 | `cy.visit('?section=type')` | 查询参数处理 |
+| 页面加载等待 | `cy.visit().get('.banner')` | 自动等待机制 |
+
+**核心概念**：
+- ✅ Cypress 自动等待页面加载完成
+- ✅ 可以访问相对路径和绝对路径
+- ✅ 自动处理重定向和单页应用路由
+- ✅ 支持设置访问选项（超时、用户代理等）
+
+### 🎯 cy.get() - 元素选择大师
+
+| 选择器类型 | 语法示例 | 优先级 | 使用场景 |
+|------------|----------|--------|----------|
+| data-cy 属性 | `cy.get('[data-cy="submit"]')` | ⭐⭐⭐⭐⭐ | 测试专用，最稳定 |
+| ID 选择器 | `cy.get('#email')` | ⭐⭐⭐⭐ | 唯一元素 |
+| Class 选择器 | `cy.get('.btn-primary')` | ⭐⭐⭐ | 样式相关元素 |
+| 标签选择器 | `cy.get('button')` | ⭐⭐ | 元素类型查找 |
+| 属性选择器 | `cy.get('[type="email"]')` | ⭐⭐⭐ | 特定属性元素 |
+| 复合选择器 | `cy.get('.form input[type="email"]')` | ⭐⭐⭐⭐ | 精确定位 |
+
+**高级技巧**：
+```javascript
+// 索引选择
+cy.get('li').first()    // 第一个
+cy.get('li').last()     // 最后一个
+cy.get('li').eq(2)      // 第3个（索引从0开始）
+
+// 过滤和查找
+cy.get('.item').filter('.active')     // 过滤条件
+cy.get('.container').find('button')   // 在容器内查找
+```
+
+### 🖱️ .click() - 交互操作专家
+
+| 点击类型 | 语法示例 | 使用场景 |
+|----------|----------|----------|
+| 普通点击 | `cy.get('button').click()` | 按钮、链接点击 |
+| 强制点击 | `cy.get('.hidden').click({force: true})` | 被覆盖的元素 |
+| 位置点击 | `cy.get('.canvas').click(100, 200)` | 特定坐标点击 |
+| 双击 | `cy.get('.item').dblclick()` | 双击触发事件 |
+| 右键点击 | `cy.get('.menu').rightclick()` | 上下文菜单 |
+
+**点击选项**：
+```javascript
+cy.get('button').click({
+  force: true,        // 强制点击
+  multiple: true,     // 多个元素点击
+  position: 'topLeft' // 点击位置
+})
+```
+
+### ✅ .should() - 断言验证专家
+
+#### 存在性断言
+```javascript
+cy.get('.element').should('exist')      // 元素存在
+cy.get('.element').should('not.exist')  // 元素不存在
+```
+
+#### 可见性断言
+```javascript
+cy.get('.element').should('be.visible')     // 可见
+cy.get('.element').should('not.be.visible') // 不可见
+cy.get('.element').should('be.hidden')      // 隐藏
+```
+
+#### 状态断言
+```javascript
+cy.get('input').should('be.enabled')   // 启用状态
+cy.get('input').should('be.disabled')  // 禁用状态
+cy.get('input').should('be.focused')   // 聚焦状态
+cy.get('input').should('be.checked')   // 选中状态（复选框）
+```
+
+#### 内容断言
+```javascript
+cy.get('h1').should('contain', 'Welcome')        // 包含文本
+cy.get('h1').should('have.text', 'Welcome')      // 精确文本
+cy.get('input').should('have.value', 'test')     // 输入值
+cy.get('img').should('have.attr', 'src')         // 属性存在
+cy.get('div').should('have.class', 'active')     // CSS类
+```
+
+#### 数量和长度断言
+```javascript
+cy.get('li').should('have.length', 5)                    // 精确数量
+cy.get('li').should('have.length.greaterThan', 3)        // 大于
+cy.get('li').should('have.length.lessThan', 10)          // 小于
+cy.get('p').invoke('text').should('have.length.above', 0) // 文本长度
+```
+
+#### 链式断言（推荐）
+```javascript
+cy.get('.form-input')
+  .should('exist')              // 存在
+  .should('be.visible')         // 可见
+  .should('be.enabled')         // 启用
+  .should('have.attr', 'placeholder') // 有属性
+  .should('have.class', 'form-control') // 有CSS类
+```
+
+### 🔧 实战技巧和最佳实践
+
+#### 1. 选择器优先级策略
+```javascript
+// ✅ 最佳实践 - 使用测试专用属性
+cy.get('[data-cy="submit-button"]')
+
+// ✅ 备选方案 - 稳定的 ID 或 class
+cy.get('#submit-btn')
+cy.get('.submit-button')
+
+// ❌ 避免 - 脆弱的选择器
+cy.get('body > div:nth-child(3) > form > button')
+```
+
+#### 2. 条件性元素处理
+```javascript
+// 检查元素是否存在再操作
+cy.get('body').then(($body) => {
+  if ($body.find('.optional-element').length > 0) {
+    cy.get('.optional-element').click()
+  }
+})
+```
+
+#### 3. 动态内容等待
+```javascript
+// Cypress 自动等待，无需手动 sleep
+cy.get('.loading').should('not.exist')  // 等待加载完成
+cy.get('.content').should('be.visible') // 等待内容出现
+```
+
+#### 4. 链式命令最佳实践
+```javascript
+// ✅ 清晰的链式调用
+cy.get('.email-input')
+  .should('be.visible')      // 先验证状态
+  .clear()                   // 清空内容
+  .type('user@example.com')  // 输入内容
+  .should('have.value', 'user@example.com') // 验证结果
+  .blur()                    // 触发失焦事件
+```
+
+### 🎓 第一阶段知识总结
+
+#### Day 1 成果：理论基础
+- ✅ 掌握 Cypress 核心特点和优势
+- ✅ 理解与其他测试框架的区别
+- ✅ 了解适用场景和限制
+
+#### Day 2 成果：环境和结构
+- ✅ 完成项目环境搭建
+- ✅ 理解项目结构和配置
+- ✅ 编写第一个测试用例
+- ✅ 体验 Test Runner 和 Time Travel 调试
+
+#### Day 3 成果：核心技能
+- ✅ 精通四个基本命令的各种用法
+- ✅ 掌握选择器优先级和最佳实践
+- ✅ 能够处理动态内容和条件逻辑
+- ✅ 具备编写可维护测试代码的能力
+
+### 🚀 第二阶段预览
+
+接下来将学习：
+- **Day 4**: 选择器和查询进阶 (`.find()`, `.contains()`, data-cy 属性)
+- **Day 5**: 过滤和遍历 (`.filter()`, `.parent()`, `.children()`)
+- **Day 6**: 交互命令进阶 (`.type()`, `.select()`, `.check()`)
+- **Day 7**: 断言系统深入 (更多断言类型和组合)
+- **Day 8**: Hooks 和测试组织 (`beforeEach`, `.only()`, `.skip()`)
+
+### 💡 学习建议
+
+1. **练习顺序**：
+   - 先运行 `day3-basic-commands.cy.js` 掌握基础
+   - 再挑战 `day3-challenges.cy.js` 提升技能
+
+2. **调试技巧**：
+   - 使用 `cy.pause()` 暂停测试观察
+   - 利用 Time Travel 查看每一步执行
+   - 用 Chrome DevTools 检查元素选择器
+
+3. **知识巩固**：
+   - 在不同网站上练习相同命令
+   - 尝试编写自己的测试场景
+   - 记录遇到的问题和解决方案
+
+**完成标志**：能够流畅使用四个基本命令编写完整的测试流程，理解 Cypress 的自动等待机制，掌握选择器最佳实践。
 
 
 ---
@@ -343,9 +778,9 @@
 
 使用 ✅ 标记完成的日期：
 
-- Day 1: ⬜
-- Day 2: ⬜
-- Day 3: ⬜
+- Day 1: ✅
+- Day 2: ✅
+- Day 3: ✅
 - Day 4: ⬜
 - Day 5: ⬜
 - Day 6: ⬜
