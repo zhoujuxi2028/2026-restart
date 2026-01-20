@@ -294,3 +294,230 @@ app.handle(mockRequest, mockResponse, callback)
 - **环境隔离**的重要性和实现方式
 - **模块化架构**中测试和生产的分离机制
 - **自动化测试反馈**对开发效率的巨大提升
+
+---
+
+## 🚀 Node.js 跨语言集成学习记录
+
+### 学习背景
+- **日期**: 2026-01-19
+- **学习方法**: TDD (Test-Driven Development) 测试驱动开发
+- **集成语言**: C++ + Java + Node.js
+
+### 🎯 C++ 集成实现 (已完成)
+
+#### 核心特点
+- **架构**: Node.js → Child Process → C++ 可执行文件
+- **通信方式**: 命令行参数传递，标准输出返回
+- **操作类型**: 数学计算 (add, multiply, fibonacci, squares)
+
+#### 代码示例
+```javascript
+// Node.js 调用 C++ 程序
+const cppProcess = spawn('./cpp/calculator', ['add', '15', '25']);
+```
+
+```cpp
+// C++ 程序输出格式
+cout << "RESULT: " << result << endl;
+```
+
+#### 测试覆盖 (10个测试用例)
+- **成功场景**: 4个数学操作测试
+- **参数验证**: 4个输入验证测试
+- **错误处理**: 1个状态检查测试
+
+---
+
+### ☕ Java 集成实现 (当前完成)
+
+#### 🔧 设计方案
+- **架构**: Node.js → Child Process → Java VM → Java 类
+- **通信协议**: JSON请求 → 命令行参数 → Java处理 → 标准输出 → JSON响应
+- **数据处理类型**: 字符串处理、数组操作、数学计算
+
+#### 📋 Java集成API设计
+
+##### POST /api/java/process
+```javascript
+// 请求格式
+{
+  "operation": "reverse|sort|unique|prime|factorial|uppercase|wordcount|palindrome",
+  "data": string | number | array
+}
+
+// 响应格式
+{
+  "success": true,
+  "operation": "reverse",
+  "data": "Hello World",
+  "result": "dlroW olleH",
+  "executionTime": "65ms",
+  "javaOutput": "[Java] 完整输出..."
+}
+```
+
+##### GET /api/java/status
+```javascript
+// 响应格式
+{
+  "javaAvailable": true,
+  "javaVersion": "1.8.0_391",
+  "dataProcessorPath": "/path/to/DataProcessor.class",
+  "classExists": true,
+  "supportedOperations": ["reverse", "sort", "unique", ...],
+  "lastChecked": "2026-01-19T13:30:05.747Z"
+}
+```
+
+#### 🗂️ Java程序结构 (DataProcessor.java)
+
+##### 支持的数据处理操作
+| 操作 | 类型 | 输入示例 | 输出示例 | 用途 |
+|------|------|----------|----------|------|
+| **reverse** | 字符串 | "Hello World" | "dlroW olleH" | 字符串反转 |
+| **sort** | 数组 | ["cherry","apple","banana"] | "apple,banana,cherry" | 数组排序 |
+| **unique** | 数组 | ["apple","banana","apple"] | "apple,banana" | 数组去重 |
+| **prime** | 数字 | 17 | "true" | 质数检查 |
+| **factorial** | 数字 | 5 | "120" | 阶乘计算 |
+| **uppercase** | 字符串 | "hello java" | "HELLO JAVA" | 大写转换 |
+| **wordcount** | 字符串 | "Java is powerful" | "3" | 单词计数 |
+| **palindrome** | 字符串 | "A man a plan a canal Panama" | "true" | 回文检查 |
+
+##### Java程序特色功能
+```java
+// 执行时间统计
+long startTime = System.nanoTime();
+// ... 处理逻辑
+long executionTime = (endTime - startTime) / 1_000_000.0;
+
+// 详细日志输出
+System.out.println("[Java] Operation: " + operation);
+System.out.println("[Java] Arguments: " + Arrays.toString(args));
+
+// 标准化结果输出
+System.out.println("RESULT: " + result);
+```
+
+#### 🧪 TDD测试实现 (13个测试用例)
+
+##### 测试编号规范
+```
+JAVA-PROCESS-SUCCESS-01~08: 8个成功操作测试
+JAVA-PROCESS-VALIDATION-01~03: 3个参数验证测试
+JAVA-PROCESS-ERROR-01: 1个错误处理测试
+JAVA-STATUS-SUCCESS-01: 1个状态检查测试
+```
+
+##### TDD红-绿-蓝循环记录
+```bash
+# 🔴 RED 阶段: 编写测试，确认失败
+npm test server.java.test.js  # ❌ 13 tests failed (没有Java API)
+
+# 🟢 GREEN 阶段: 实现功能，通过测试
+# 1. 创建 DataProcessor.java 程序
+# 2. 编译: javac DataProcessor.java
+# 3. 实现 Node.js API 路由
+npm test server.java.test.js  # ✅ 13 tests passed
+
+# 🔵 BLUE 阶段: 重构优化，保持测试通过
+npm test  # ✅ 33 tests total: 10 DB + 10 C++ + 13 Java
+```
+
+#### 💻 核心实现代码片段
+
+##### Node.js Java集成API
+```javascript
+// server.js: POST /api/java/process
+const javaProcess = spawn('java', ['-cp', javaClassPath, javaClass, operation, ...dataArgs]);
+
+javaProcess.on('close', (code) => {
+  if (code !== 0) {
+    return res.status(500).json({
+      success: false,
+      error: 'Java program execution failed',
+      exitCode: code
+    });
+  }
+
+  // 解析 RESULT: 输出格式
+  const resultLine = stdout.trim().split('\n')
+                           .find(line => line.startsWith('RESULT: '));
+  const result = resultLine.replace('RESULT: ', '');
+
+  res.status(200).json({
+    success: true,
+    operation, data, result,
+    executionTime: `${executionTime}ms`
+  });
+});
+```
+
+##### 参数验证与错误处理
+```javascript
+// 操作类型验证
+const validOperations = ['reverse', 'sort', 'unique', 'prime', 'factorial', 'uppercase', 'wordcount', 'palindrome'];
+if (!validOperations.includes(operation)) {
+  return res.status(400).json({
+    success: false,
+    error: 'Invalid operation',
+    message: `operation must be one of: ${validOperations.join(', ')}`
+  });
+}
+
+// 数据格式处理
+if (Array.isArray(data)) {
+  javaArgs = javaArgs.concat(data.map(item => item.toString()));
+} else {
+  javaArgs.push(data.toString());
+}
+```
+
+#### 🔍 技术深度分析
+
+##### 跨语言通信协议设计
+```
+HTTP JSON → Node.js → 参数解析 → 进程启动 → Java JVM →
+算法处理 → 标准输出 → Node.js解析 → JSON响应 → HTTP
+```
+
+##### 性能特点
+- **Java启动开销**: 每次请求需要启动新的JVM实例 (~50-70ms)
+- **进程通信**: 通过stdin/stdout进行数据传递
+- **内存隔离**: 每个Java进程独立运行，互不影响
+
+##### 错误处理层级
+1. **Node.js层**: 参数验证、进程启动失败
+2. **Java层**: 算法执行错误、输入格式错误
+3. **通信层**: 输出格式解析错误
+
+#### 📊 最终测试统计
+
+```bash
+npm test
+# Test Suites: 3 passed, 3 total
+# Tests: 33 passed, 33 total
+# - Database CRUD: 10 tests ✅
+# - C++ Integration: 10 tests ✅
+# - Java Integration: 13 tests ✅
+```
+
+#### 🎉 集成成果总结
+
+通过这次Java集成学习，成功实现了：
+
+1. **完整的TDD开发流程**: 红-绿-蓝循环实践
+2. **跨语言架构设计**: Node.js与Java的无缝集成
+3. **全面的测试覆盖**: 功能测试+参数验证+错误处理
+4. **生产级别的错误处理**: 多层次异常捕获和用户友好的错误信息
+5. **可扩展的架构**: 支持轻松添加新的Java数据处理操作
+
+#### 💡 关键学习收获
+
+- **Child Process模式**: 是实现Node.js与其他语言集成的标准模式
+- **标准化通信协议**: `RESULT: xxx` 输出格式确保解析的可靠性
+- **测试驱动开发**: TDD确保代码质量和功能完整性
+- **参数验证的重要性**: 多层验证防止系统错误
+- **日志记录最佳实践**: 详细的执行日志便于调试和监控
+
+这为后续更复杂的跨语言集成项目奠定了坚实的技术基础。

@@ -20,7 +20,7 @@ describe('Items API', () => {
   // ===== 数据获取类测试 (Retrieve) =====
 
   describe('GET /items', () => {
-    // DB-RETRIEVE-SUCCESS-01: 获取所有项目列表
+    // DB-CRUD-GET-SUCCESS-01: 获取所有项目列表
     // 功能: 验证 GET /items 返回所有项目
     // 期望: 200状态码 + 项目数组格式数据
     // 依赖: 数据库已初始化且包含测试数据
@@ -38,7 +38,7 @@ describe('Items API', () => {
   });
 
   describe('GET /items/:id', () => {
-    // DB-RETRIEVE-SUCCESS-02: 获取指定项目（正常场景）
+    // DB-CRUD-GET-SUCCESS-02: 获取指定项目（正常场景）
     // 功能: 验证 GET /items/1 返回特定项目
     // 期望: 200状态码 + 完整项目对象 (包含id, name, createdAt)
     // 依赖: ID=1的项目存在于数据库中
@@ -52,7 +52,7 @@ describe('Items API', () => {
       expect(response.body).toHaveProperty('createdAt');
     });
 
-    // DB-RETRIEVE-ERROR-01: 获取不存在项目
+    // DB-CRUD-GET-ERROR-01: 获取不存在项目
     // 功能: 验证 GET /items/999 处理不存在项目的错误情况
     // 期望: 404状态码 + 错误信息
     // 说明: 测试资源不存在的标准HTTP错误处理
@@ -66,7 +66,7 @@ describe('Items API', () => {
   // ===== 数据创建类测试 (Create) =====
 
   describe('POST /items', () => {
-    // DB-CREATE-SUCCESS-01: 创建新项目（正常场景）
+    // DB-CRUD-POST-SUCCESS-01: 创建新项目（正常场景）
     // 功能: 验证 POST /items 创建新项目
     // 期望: 201状态码 + 新项目对象 (包含自动生成的id和时间戳)
     // 说明: 执行后将创建新项目，为后续DELETE测试提供数据
@@ -82,7 +82,7 @@ describe('Items API', () => {
       expect(response.body).toHaveProperty('createdAt');
     });
 
-    // DB-CREATE-VALIDATION-01: 创建项目缺少必填字段验证
+    // DB-CRUD-POST-VALIDATION-01: 创建项目缺少必填字段验证
     // 功能: 验证 POST /items 数据验证（缺少name）
     // 期望: 400状态码 + 错误信息
     // 说明: 测试业务规则验证，确保数据完整性
@@ -97,7 +97,7 @@ describe('Items API', () => {
   // ===== 数据更新类测试 (Update) =====
 
   describe('PUT /items/:id', () => {
-    // DB-UPDATE-SUCCESS-01: 更新已存在项目
+    // DB-CRUD-PUT-SUCCESS-01: 更新已存在项目
     // 功能: 验证 PUT /items/1 更新项目信息
     // 期望: 200状态码 + 更新后对象 (保持原id和createdAt)
     // 依赖: ID=1的项目存在于数据库中
@@ -112,7 +112,7 @@ describe('Items API', () => {
       expect(response.body).toHaveProperty('createdAt');
     });
 
-    // DB-UPDATE-ERROR-01: 更新不存在项目
+    // DB-CRUD-PUT-ERROR-01: 更新不存在项目
     // 功能: 验证 PUT /items/999 处理不存在项目的错误情况
     // 期望: 404状态码 + 错误信息
     // 说明: 测试更新操作的资源存在性检查
@@ -123,7 +123,7 @@ describe('Items API', () => {
         .expect(404);
     });
 
-    // DB-UPDATE-VALIDATION-01: 更新项目缺少必填字段验证
+    // DB-CRUD-PUT-VALIDATION-01: 更新项目缺少必填字段验证
     // 功能: 验证 PUT /items/1 数据验证（缺少name）
     // 期望: 400状态码 + 错误信息
     // 说明: 测试更新操作的数据完整性验证
@@ -138,11 +138,11 @@ describe('Items API', () => {
   // ===== 数据删除类测试 (Delete) =====
 
   describe('DELETE /items/:id', () => {
-    // DB-DELETE-SUCCESS-01: 删除已存在项目 ✅ **已修复测试**
+    // DB-CRUD-DELETE-SUCCESS-01: 删除已存在项目 ✅ **已修复测试**
     // 功能: 验证 DELETE /items/3 删除项目
     // 期望: 200状态码 + 成功删除确认
     // 修复: 通过环境隔离解决数据库同步问题
-    // 依赖: DB-CREATE-SUCCESS-01执行后创建的项目
+    // 依赖: DB-CRUD-POST-SUCCESS-01执行后创建的项目
     it('should delete an existing item', async () => {
       await request(app)
         .delete('/items/3')  // 使用存在的ID
@@ -154,7 +154,7 @@ describe('Items API', () => {
         .expect(404);
     });
 
-    // DB-DELETE-ERROR-01: 删除不存在项目
+    // DB-CRUD-DELETE-ERROR-01: 删除不存在项目
     // 功能: 验证 DELETE /items/999 处理不存在项目的错误情况
     // 期望: 404状态码 + 错误信息
     // 说明: 测试删除操作的资源存在性检查

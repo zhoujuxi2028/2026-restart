@@ -8,7 +8,7 @@ describe('C++ Integration API', () => {
   // ===== C++计算功能测试 (TDD Approach) =====
 
   describe('POST /api/cpp/calculate', () => {
-    // CPP-CALC-SUCCESS-01: C++加法运算（正常场景）
+    // CPP-INTEGRATION-CALC-SUCCESS-01: C++加法运算（正常场景）
     // 功能: 验证 POST /api/cpp/calculate 调用C++程序进行加法计算
     // 期望: 200状态码 + 正确的计算结果
     // 依赖: C++可执行文件存在且功能正常
@@ -28,7 +28,7 @@ describe('C++ Integration API', () => {
       expect(response.body.success).toBe(true);
     });
 
-    // CPP-CALC-SUCCESS-02: C++乘法运算（正常场景）
+    // CPP-INTEGRATION-CALC-SUCCESS-02: C++乘法运算（正常场景）
     // 功能: 验证 POST /api/cpp/calculate 调用C++程序进行乘法计算
     // 期望: 200状态码 + 正确的乘法结果
     // 依赖: C++可执行文件存在且multiply操作正常
@@ -47,7 +47,7 @@ describe('C++ Integration API', () => {
       expect(response.body.success).toBe(true);
     });
 
-    // CPP-CALC-SUCCESS-03: C++斐波那契计算（正常场景）
+    // CPP-INTEGRATION-CALC-SUCCESS-03: C++斐波那契计算（正常场景）
     // 功能: 验证 POST /api/cpp/calculate 调用C++程序计算斐波那契数列
     // 期望: 200状态码 + 正确的斐波那契数值 (fibonacci(10) = 55)
     // 依赖: C++可执行文件存在且fibonacci算法正确
@@ -66,7 +66,7 @@ describe('C++ Integration API', () => {
       expect(response.body.success).toBe(true);
     });
 
-    // CPP-CALC-SUCCESS-04: C++平方和计算（正常场景）
+    // CPP-INTEGRATION-CALC-SUCCESS-04: C++平方和计算（正常场景）
     // 功能: 验证 POST /api/cpp/calculate 调用C++程序计算平方和
     // 期望: 200状态码 + 正确的平方和结果 (3² + 4² + 5² = 50)
     // 依赖: C++可执行文件存在且squares计算正确
@@ -85,7 +85,7 @@ describe('C++ Integration API', () => {
       expect(response.body.success).toBe(true);
     });
 
-    // CPP-CALC-VALIDATION-01: 无效操作类型验证
+    // CPP-INTEGRATION-CALC-VALIDATION-01: 无效操作类型验证
     // 功能: 验证 POST /api/cpp/calculate 对无效操作的处理
     // 期望: 400状态码 + 错误信息
     // 说明: 测试API参数验证层，确保只接受支持的操作类型
@@ -103,7 +103,7 @@ describe('C++ Integration API', () => {
       expect(response.body.success).toBe(false);
     });
 
-    // CPP-CALC-VALIDATION-02: 缺少必填字段验证（operation）
+    // CPP-INTEGRATION-CALC-VALIDATION-02: 缺少必填字段验证（operation）
     // 功能: 验证 POST /api/cpp/calculate 对缺少operation字段的处理
     // 期望: 400状态码 + 错误信息
     // 说明: 测试必填参数验证，确保API健壮性
@@ -120,7 +120,7 @@ describe('C++ Integration API', () => {
       expect(response.body.success).toBe(false);
     });
 
-    // CPP-CALC-VALIDATION-03: 缺少必填字段验证（numbers）
+    // CPP-INTEGRATION-CALC-VALIDATION-03: 缺少必填字段验证（numbers）
     // 功能: 验证 POST /api/cpp/calculate 对缺少numbers字段的处理
     // 期望: 400状态码 + 错误信息
     // 说明: 测试数字参数必填验证
@@ -137,7 +137,7 @@ describe('C++ Integration API', () => {
       expect(response.body.success).toBe(false);
     });
 
-    // CPP-CALC-VALIDATION-04: 数字参数数量验证
+    // CPP-INTEGRATION-CALC-VALIDATION-04: 数字参数数量验证
     // 功能: 验证 POST /api/cpp/calculate 对add操作缺少足够数字的处理
     // 期望: 400状态码 + 错误信息
     // 说明: 测试特定操作的参数数量要求 (add需要2个数字)
@@ -154,7 +154,7 @@ describe('C++ Integration API', () => {
       expect(response.body.success).toBe(false);
     });
 
-    // CPP-CALC-ERROR-01: C++程序执行错误处理
+    // CPP-INTEGRATION-CALC-ERROR-01: C++程序执行错误处理
     // 功能: 验证当C++可执行文件不存在时的错误处理
     // 期望: 500状态码 + 错误信息 (程序不存在时) 或 200状态码 (程序正常时)
     // 说明: 测试系统级错误的优雅处理
@@ -178,7 +178,7 @@ describe('C++ Integration API', () => {
   });
 
   describe('GET /api/cpp/status', () => {
-    // CPP-STATUS-SUCCESS-01: C++集成状态检查
+    // CPP-STATUS-CHECK-SUCCESS-01: C++集成状态检查
     // 功能: 验证 GET /api/cpp/status 返回C++集成状态
     // 期望: 200状态码 + 状态信息 (可用性、路径、支持的操作)
     // 说明: 提供系统诊断和监控功能

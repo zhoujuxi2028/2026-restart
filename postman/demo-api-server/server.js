@@ -328,6 +328,184 @@ app.get('/api/cpp/status', (req, res) => {
   }
 });
 
+// ===== Java集成API =====
+
+// POST /api/java/process - 调用Java程序进行数据处理
+app.post('/api/java/process', (req, res) => {
+  const { operation, data } = req.body;
+
+  console.log(`[${new Date().toISOString()}] Java Process request: ${operation} with data: ${JSON.stringify(data)}`);
+
+  // 参数验证
+  if (!operation) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing operation parameter',
+      message: 'operation field is required'
+    });
+  }
+
+  if (data === undefined || data === null) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing or invalid data parameter',
+      message: 'data field is required'
+    });
+  }
+
+  // 操作特定验证
+  const validOperations = ['reverse', 'sort', 'unique', 'prime', 'factorial', 'uppercase', 'wordcount', 'palindrome'];
+  if (!validOperations.includes(operation)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid operation',
+      message: `operation must be one of: ${validOperations.join(', ')}`
+    });
+  }
+
+  // Java程序路径和类路径
+  const javaClassPath = path.join(__dirname, 'java');
+  const javaClass = 'DataProcessor';
+
+  // 构建Java命令参数
+  let javaArgs = ['-cp', javaClassPath, javaClass, operation];
+
+  // 根据数据类型构建参数
+  if (Array.isArray(data)) {
+    // 数组类型：直接添加所有元素
+    javaArgs = javaArgs.concat(data.map(item => item.toString()));
+  } else {
+    // 单一值：直接添加
+    javaArgs.push(data.toString());
+  }
+
+  const startTime = Date.now();
+
+  console.log(`[${new Date().toISOString()}] Executing Java program: java ${javaArgs.join(' ')}`);
+
+  // 执行Java程序
+  const javaProcess = spawn('java', javaArgs);
+
+  let stdout = '';
+  let stderr = '';
+
+  javaProcess.stdout.on('data', (data) => {
+    stdout += data.toString();
+  });
+
+  javaProcess.stderr.on('data', (data) => {
+    stderr += data.toString();
+  });
+
+  javaProcess.on('close', (code) => {
+    const executionTime = Date.now() - startTime;
+
+    console.log(`[${new Date().toISOString()}] Java program finished with code: ${code}, time: ${executionTime}ms`);
+
+    if (code !== 0) {
+      console.error(`[${new Date().toISOString()}] Java program error: ${stderr}`);
+      return res.status(500).json({
+        success: false,
+        error: 'Java program execution failed',
+        message: stderr || 'Unknown error occurred',
+        exitCode: code
+      });
+    }
+
+    // 解析Java程序输出
+    const lines = stdout.trim().split('\n');
+    const resultLine = lines.find(line => line.startsWith('RESULT: '));
+
+    if (!resultLine) {
+      console.error(`[${new Date().toISOString()}] Could not parse Java output: ${stdout}`);
+      return res.status(500).json({
+        success: false,
+        error: 'Could not parse Java program result',
+        message: 'Invalid output format'
+      });
+    }
+
+    const result = resultLine.replace('RESULT: ', '');
+
+    console.log(`[${new Date().toISOString()}] Java processing result: ${result}`);
+
+    res.status(200).json({
+      success: true,
+      operation: operation,
+      data: data,
+      result: result,
+      executionTime: `${executionTime}ms`,
+      javaOutput: stdout.trim()
+    });
+  });
+
+  javaProcess.on('error', (err) => {
+    const executionTime = Date.now() - startTime;
+    console.error(`[${new Date().toISOString()}] Java program spawn error: ${err.message}`);
+
+    res.status(500).json({
+      success: false,
+      error: 'Failed to execute Java program',
+      message: err.message,
+      executionTime: `${executionTime}ms`
+    });
+  });
+});
+
+// GET /api/java/status - 检查Java集成状态
+app.get('/api/java/status', async (req, res) => {
+  const javaClassPath = path.join(__dirname, 'java');
+  const dataProcessorPath = path.join(javaClassPath, 'DataProcessor.class');
+
+  console.log(`[${new Date().toISOString()}] Checking Java integration status`);
+
+  // 检查Java可执行文件是否存在
+  const fs = require('fs');
+
+  try {
+    // 检查Java程序是否存在
+    const classExists = fs.existsSync(dataProcessorPath);
+
+    // 检查Java版本
+    let javaVersion = 'unknown';
+    let javaAvailable = false;
+
+    if (classExists) {
+      // 尝试获取Java版本
+      try {
+        const { execSync } = require('child_process');
+        const versionOutput = execSync('java -version 2>&1', { encoding: 'utf8' });
+        const versionMatch = versionOutput.match(/version "([^"]+)"/);
+        if (versionMatch) {
+          javaVersion = versionMatch[1];
+          javaAvailable = true;
+        }
+      } catch (error) {
+        console.log(`[${new Date().toISOString()}] Failed to get Java version: ${error.message}`);
+      }
+    }
+
+    res.status(200).json({
+      javaAvailable: javaAvailable && classExists,
+      javaVersion: javaVersion,
+      dataProcessorPath: dataProcessorPath,
+      classExists: classExists,
+      supportedOperations: ['reverse', 'sort', 'unique', 'prime', 'factorial', 'uppercase', 'wordcount', 'palindrome'],
+      lastChecked: new Date().toISOString()
+    });
+
+  } catch (error) {
+    res.status(200).json({
+      javaAvailable: false,
+      javaVersion: 'unknown',
+      dataProcessorPath: dataProcessorPath,
+      error: error.message,
+      supportedOperations: ['reverse', 'sort', 'unique', 'prime', 'factorial', 'uppercase', 'wordcount', 'palindrome'],
+      lastChecked: new Date().toISOString()
+    });
+  }
+});
+
 // 导出app和数据库实例用于测试
 module.exports = { app, db };
 
