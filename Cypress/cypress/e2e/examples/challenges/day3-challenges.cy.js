@@ -23,16 +23,21 @@ describe('Day 3: 挑战练习 - 实战场景', () => {
         .should('have.value', 'challenge@cypress.io')
 
       // 文本输入（检查是否存在其他输入框）
-      cy.get('body').then(($body) => {
-        const otherInputs = $body.find('input[type="text"]:not(.action-email)')
-        if (otherInputs.length > 0) {
-          cy.wrap(otherInputs).first().type('DISCOUNT50')
-        } else {
-          cy.log('没有找到其他可用的文本输入框')
-        }
-      })
-
-      // 密码输入（如果存在）
+   cy.get('body').then(($body) => {
+  const otherInputs = $body.find('input[type="text"]:not(.action-email)')
+  cy.log(`找到 ${otherInputs.length} 个其他文本输入框`)
+  
+  if (otherInputs.length > 0) {
+    cy.wrap(otherInputs).first().then(($input) => {
+      cy.log(`输入框是否可见: ${$input.is(':visible')}`)
+      cy.log(`输入框是否启用: ${!$input.is('[disabled]')}`)
+    })
+    cy.wrap(otherInputs).first().type('DISCOUNT50').should('have.value', 'DISCOUNT50')
+  } else {
+    cy.log('没有找到其他可用的文本输入框')
+  }
+})
+     // 密码输入（如果存在）
       cy.get('body').then(($body) => {
         if ($body.find('input[type="password"]').length) {
           cy.get('input[type="password"]')
@@ -100,7 +105,7 @@ describe('Day 3: 挑战练习 - 实战场景', () => {
       cy.get('body').then(($body) => {
         // 如果存在下拉菜单
         if ($body.find('select').length > 0) {
-          cy.get('select').first().select(1) // 选择第二个选项
+          cy.get('select').first().select(2) // 选择第二个选项
         }
 
         // 如果存在可用的复选框（非disabled）
@@ -110,7 +115,7 @@ describe('Day 3: 挑战练习 - 实战场景', () => {
 
         // 如果存在可用的单选按钮（非disabled）
         if ($body.find('input[type="radio"]:not([disabled])').length > 0) {
-          cy.get('input[type="radio"]:not([disabled])').first().check()
+          cy.get('input[type="radio"]:not([disabled])').eq(0).check()
         }
       })
     })
@@ -278,7 +283,7 @@ describe('Day 3: 挑战练习 - 实战场景', () => {
       })
     })
 
-    it('5.3 模拟数据验证和提交', () => {
+    it.only('5.3 模拟数据验证和提交', () => {
       cy.visit('https://example.cypress.io/commands/actions')
 
       // 模拟表单验证场景
