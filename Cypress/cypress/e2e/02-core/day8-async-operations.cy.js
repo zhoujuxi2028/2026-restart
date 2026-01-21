@@ -90,19 +90,25 @@ describe('⏳ Day 10: Async Operations Handling', () => {
       // 🎯 Learning Point: Waiting for multiple requests
       cy.visit('https://example.cypress.io/commands/network-requests')
 
+      // Intercept multiple API endpoints
       cy.intercept('GET', '**/comments/*').as('getComment')
       cy.intercept('PUT', '**/comments/*').as('putComment')
 
       // Trigger GET request
-      cy.get('.network-btn').click()
-      cy.wait('@getComment')
+      cy.contains('.network-btn', 'Get Comment').click()
+      cy.wait('@getComment').then((interception) => {
+        expect(interception.response.statusCode).to.eq(200)
+        cy.log('✅ GET request completed')
+      })
 
       // Trigger PUT request
-      cy.get('.network-put').click()
+      cy.contains('.network-put', 'Update Comment').click()
       cy.wait('@putComment').then((interception) => {
         expect(interception.response.statusCode).to.eq(200)
-        cy.log('✅ Multiple requests handled')
+        cy.log('✅ PUT request completed')
       })
+
+      cy.log('✅ Multiple requests handled successfully')
     })
 
     it('should be able to handle page scrolling', () => {
