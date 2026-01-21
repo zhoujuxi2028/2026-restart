@@ -1,146 +1,146 @@
 // ============================================
-// Day 5: 异步操作与等待机制
+// Day 5: Async Operations & Wait Mechanisms
 // ============================================
-// 学习目标：掌握异步操作处理、等待机制、网络拦截基础
-// 网站：https://example.cypress.io + 实际API测试
+// Learning Objectives: Master async operation handling, wait mechanisms, network interception basics
+// Website: https://example.cypress.io + Actual API testing
 
-describe('Day 5: 异步操作与等待机制', () => {
+describe('Day 5: Async Operations & Wait Mechanisms', () => {
 
   // ============================================
-  // 模块1: 等待机制深度学习
+  // Module 1: Deep Dive into Wait Mechanisms
   // ============================================
-  describe('模块1: 等待机制 (Wait Mechanisms)', () => {
+  describe('Module 1: Wait Mechanisms', () => {
 
     beforeEach(() => {
       cy.visit('https://example.cypress.io')
     })
 
-    it('1.1 隐式等待 vs 显式等待', () => {
-      cy.log('⏳ 理解Cypress的默认等待机制')
+    it('1.1 Implicit Wait vs Explicit Wait', () => {
+      cy.log('⏳ Understanding Cypress default wait mechanisms')
 
-      // Cypress的隐式等待（默认4秒）
-      cy.get('h1').should('be.visible') // 自动等待直到元素出现
+      // Cypress implicit wait (default 4 seconds)
+      cy.get('h1').should('be.visible') // Automatically waits until element appears
 
-      // 导航到Actions页面观察等待
+      // Navigate to Actions page to observe waiting
       cy.get('.dropdown').contains('Commands').click()
       cy.contains('Actions').click()
 
-      // Cypress会自动等待页面加载和元素出现
+      // Cypress automatically waits for page load and element appearance
       cy.url().should('include', '/commands/actions')
       cy.get('.action-email').should('be.visible')
 
-      cy.log('✅ 隐式等待机制验证完成')
+      cy.log('✅ Implicit wait mechanism verification completed')
     })
 
-    it('1.2 显式等待 - cy.wait()', () => {
-      cy.log('🕐 学习显式等待的使用场景')
+    it('1.2 Explicit Wait - cy.wait()', () => {
+      cy.log('🕐 Learning explicit wait use cases')
 
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 场景1: 固定时间等待
-      cy.log('等待1秒模拟加载时间')
+      // Scenario 1: Fixed time wait
+      cy.log('Waiting 1 second to simulate loading time')
       cy.wait(1000)
 
-      // 场景2: 模拟等待动画完成
+      // Scenario 2: Simulate waiting for animation completion
       cy.get('.action-email')
         .clear()
         .type('slow-typing@example.com')
 
-      cy.log('等待输入动画完成')
+      cy.log('Waiting for input animation to complete')
       cy.wait(500)
 
       cy.get('.action-email').should('have.value', 'slow-typing@example.com')
 
-      // 注意：在实际项目中应该避免固定时间等待
-      cy.log('⚠️ 注意：尽量使用条件等待而不是固定时间等待')
+      // Note: Fixed time waits should be avoided in real projects
+      cy.log('⚠️ Note: Prefer conditional waits over fixed time waits')
     })
 
-    it('1.3 条件等待 - should() 与重试机制', () => {
-      cy.log('🔄 掌握条件等待和重试机制')
+    it('1.3 Conditional Wait - should() & Retry Mechanism', () => {
+      cy.log('🔄 Mastering conditional wait and retry mechanism')
 
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 等待元素变为可见状态
+      // Wait for element to become visible
       cy.get('.action-email')
         .should('be.visible')
         .should('be.enabled')
         .should('not.be.disabled')
 
-      // 等待特定属性值
+      // Wait for specific attribute value
       cy.get('.action-email')
         .invoke('attr', 'type')
         .should('equal', 'email')
 
-      // 等待文本内容
+      // Wait for text content
       cy.get('h1')
         .should('contain.text', 'Actions')
         .should('be.visible')
 
-      cy.log('✅ 条件等待机制验证完成')
+      cy.log('✅ Conditional wait mechanism verification completed')
     })
 
-    it('1.4 自定义等待条件', () => {
-      cy.log('🎯 创建自定义等待条件')
+    it('1.4 Custom Wait Conditions', () => {
+      cy.log('🎯 Creating custom wait conditions')
 
       cy.visit('https://example.cypress.io/commands/querying')
 
-      // 等待页面完全加载（多个条件组合）
+      // Wait for page fully loaded (multiple conditions combined)
       cy.get('h1').should('be.visible')
       cy.get('body').should('be.visible')
       cy.url().should('include', '/querying')
 
-      // 等待特定元素数量
+      // Wait for specific element count
       cy.get('li').should('have.length.greaterThan', 5)
 
-      // 自定义复杂等待条件
+      // Custom complex wait conditions
       cy.get('body').within(() => {
         cy.get('h1').should('exist')
         cy.get('p').should('have.length.greaterThan', 0)
       })
 
-      cy.log('✅ 自定义等待条件验证完成')
+      cy.log('✅ Custom wait condition verification completed')
     })
   })
 
   // ============================================
-  // 模块2: 网络拦截基础
+  // Module 2: Network Interception Basics
   // ============================================
-  describe('模块2: 网络拦截入门 (cy.intercept)', () => {
+  describe('Module 2: Network Interception Introduction (cy.intercept)', () => {
 
     beforeEach(() => {
-      // 设置网络拦截 - 使用更通用的拦截模式
+      // Setup network interception - using more generic interception pattern
       cy.intercept('GET', '**/commands/querying').as('queryingPage')
     })
 
-    it('2.1 基本网络拦截', () => {
-      cy.log('🌐 学习基本网络拦截')
+    it('2.1 Basic Network Interception', () => {
+      cy.log('🌐 Learning basic network interception')
 
-      // 访问页面触发拦截
+      // Visit page to trigger interception
       cy.visit('https://example.cypress.io')
 
-      // 点击导航链接（通过下拉菜单）
+      // Click navigation link (through dropdown menu)
       cy.get('.dropdown').contains('Commands').click()
       cy.contains('Querying').click()
 
-      // 等待网络请求完成
+      // Wait for network request to complete
       cy.wait('@queryingPage').then((interception) => {
-        cy.log('网络请求已拦截')
-        cy.log(`请求URL: ${interception.request.url}`)
+        cy.log('Network request intercepted')
+        cy.log(`Request URL: ${interception.request.url}`)
         if (interception.response) {
-          cy.log(`响应状态: ${interception.response.statusCode}`)
+          cy.log(`Response status: ${interception.response.statusCode}`)
         }
       })
 
       cy.url().should('include', '/commands/querying')
     })
 
-    it('2.2 动态响应拦截', () => {
-      cy.log('📡 动态修改网络响应')
+    it('2.2 Dynamic Response Interception', () => {
+      cy.log('📡 Dynamically modifying network response')
 
-      // 拦截并修改响应
+      // Intercept and modify response
       cy.intercept('GET', '**/commands/actions', (req) => {
         req.reply((res) => {
-          // 模拟慢网络
+          // Simulate slow network
           res.delay = 1000
           res.send(res.body)
         })
@@ -150,17 +150,17 @@ describe('Day 5: 异步操作与等待机制', () => {
       cy.get('.dropdown').contains('Commands').click()
       cy.contains('Actions').click()
 
-      // 等待被延迟的请求
+      // Wait for delayed request
       cy.wait('@actionsPage')
       cy.url().should('include', '/commands/actions')
 
-      cy.log('✅ 动态响应拦截验证完成')
+      cy.log('✅ Dynamic response interception verification completed')
     })
 
-    it('2.3 API请求拦截', () => {
-      cy.log('🔗 拦截API请求')
+    it('2.3 API Request Interception', () => {
+      cy.log('🔗 Intercepting API requests')
 
-      // 模拟API请求拦截
+      // Simulate API request interception
       cy.intercept('GET', '**/api/**', {
         statusCode: 200,
         body: {
@@ -169,7 +169,7 @@ describe('Day 5: 异步操作与等待机制', () => {
         }
       }).as('apiRequest')
 
-      // 由于example.cypress.io没有真实API，我们用页面请求模拟
+      // Since example.cypress.io has no real API, we simulate with page requests
       cy.intercept('GET', '**/commands/misc', {
         statusCode: 200,
         body: '<html><body><h1>Mock Response</h1></body></html>'
@@ -177,76 +177,76 @@ describe('Day 5: 异步操作与等待机制', () => {
 
       cy.visit('https://example.cypress.io')
 
-      // 尝试触发请求（如果存在）
+      // Try to trigger request (if exists)
       cy.get('body').then(($body) => {
         if ($body.find('a[href*="misc"]').length > 0) {
           cy.contains('Misc').click()
           cy.wait('@mockApi')
         } else {
-          cy.log('没有找到misc链接，跳过API拦截测试')
+          cy.log('Misc link not found, skipping API interception test')
         }
       })
     })
   })
 
   // ============================================
-  // 模块3: 动态内容处理
+  // Module 3: Dynamic Content Handling
   // ============================================
-  describe('模块3: 动态内容与加载状态', () => {
+  describe('Module 3: Dynamic Content & Loading States', () => {
 
-    it('3.1 等待动态内容加载', () => {
-      cy.log('📱 处理动态加载的内容')
+    it('3.1 Wait for Dynamic Content Loading', () => {
+      cy.log('📱 Handling dynamically loaded content')
 
       cy.visit('https://example.cypress.io/commands/querying')
 
-      // 等待页面基本元素加载
+      // Wait for basic page elements to load
       cy.get('h1').should('contain', 'Querying')
 
-      // 等待列表项加载完成
+      // Wait for list items to finish loading
       cy.get('li').should('have.length.greaterThan', 3)
 
-      // 等待特定内容出现
+      // Wait for specific content to appear
       cy.contains('cy.get()').should('be.visible')
       cy.contains('cy.contains()').should('be.visible')
 
-      cy.log('✅ 动态内容加载完成')
+      cy.log('✅ Dynamic content loading completed')
     })
 
-    it('3.2 处理异步渲染元素', () => {
-      cy.log('⚡ 处理异步渲染的元素')
+    it('3.2 Handle Asynchronously Rendered Elements', () => {
+      cy.log('⚡ Handling asynchronously rendered elements')
 
       cy.visit('https://example.cypress.io/commands/traversal')
 
-      // 等待页面标题
+      // Wait for page title
       cy.get('h1').should('be.visible')
 
-      // 等待页面内容加载（使用更通用的选择器）
+      // Wait for page content to load (using more generic selector)
       cy.get('body').within(() => {
-        // 使用更灵活的等待策略 - 等待任意内容元素
+        // Use more flexible wait strategy - wait for any content element
         cy.get('p, div, code').first().should('exist')
       })
 
-      // 等待交互元素准备就绪
+      // Wait for interactive elements to be ready
       cy.get('body').should('be.visible')
       cy.url().should('include', '/traversal')
 
-      cy.log('✅ 异步元素渲染完成')
+      cy.log('✅ Async element rendering completed')
     })
 
-    it('3.3 轮询检查模式', () => {
-      cy.log('🔄 实现轮询检查模式')
+    it('3.3 Polling Check Pattern', () => {
+      cy.log('🔄 Implementing polling check pattern')
 
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 模拟轮询检查某个状态
+      // Simulate polling to check a state
       const checkElementState = () => {
         cy.get('.action-email').then(($el) => {
           const currentValue = $el.val()
-          cy.log(`当前值: ${currentValue || '空'}`)
+          cy.log(`Current value: ${currentValue || 'empty'}`)
 
           if (!currentValue) {
-            cy.log('元素尚未初始化，继续检查...')
-            // 在实际应用中，这里可能会是真正的轮询
+            cy.log('Element not yet initialized, continue checking...')
+            // In real applications, this would be actual polling
             cy.wait(100)
           }
         })
@@ -254,202 +254,202 @@ describe('Day 5: 异步操作与等待机制', () => {
 
       checkElementState()
 
-      // 验证元素最终状态
+      // Verify final element state
       cy.get('.action-email')
         .should('be.visible')
         .should('have.attr', 'placeholder')
 
-      cy.log('✅ 轮询检查完成')
+      cy.log('✅ Polling check completed')
     })
 
-    it('3.4 复杂异步场景处理', () => {
-      cy.log('🎭 处理复杂异步场景')
+    it('3.4 Complex Async Scenario Handling', () => {
+      cy.log('🎭 Handling complex async scenarios')
 
       cy.visit('https://example.cypress.io')
 
-      // 场景: 多步异步导航
+      // Scenario: Multi-step async navigation
       cy.get('h1').should('contain', 'Kitchen Sink')
 
-      // 第一步：等待导航链接可用（通过下拉菜单）
+      // Step 1: Wait for navigation link to be available (through dropdown menu)
       cy.get('.dropdown').contains('Commands').should('be.visible').click()
 
-      // 第二步：点击子菜单项
+      // Step 2: Click submenu item
       cy.contains('Actions').click()
 
-      // 验证导航成功
+      // Verify navigation success
       cy.url().should('include', '/commands/actions')
       cy.get('body').should('be.visible')
 
-      // 第三步：确认在正确的页面
+      // Step 3: Confirm on correct page
       cy.get('.action-email').should('be.visible')
 
-      // 第四步：执行复杂操作
+      // Step 4: Execute complex operation
       cy.get('.action-email')
         .clear()
         .type('complex@example.com')
         .should('have.value', 'complex@example.com')
 
-      // 验证整个流程
+      // Verify entire flow
       cy.url().should('include', '/actions')
       cy.get('h1').should('contain', 'Actions')
 
-      cy.log('✅ 复杂异步场景处理完成')
+      cy.log('✅ Complex async scenario handling completed')
     })
   })
 
   // ============================================
-  // 模块4: 实际应用场景
+  // Module 4: Real-World Application Scenarios
   // ============================================
-  describe('模块4: 异步操作实战场景', () => {
+  describe('Module 4: Practical Async Operation Scenarios', () => {
 
-    it('4.1 表单提交等待', () => {
-      cy.log('📝 模拟表单提交异步处理')
+    it('4.1 Form Submission Wait', () => {
+      cy.log('📝 Simulating async form submission handling')
 
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 填写表单
+      // Fill form
       cy.get('.action-email')
         .clear()
         .type('submit-test@example.com')
 
-      // 模拟表单验证等待
+      // Simulate form validation wait
       cy.get('.action-email')
         .should('have.value', 'submit-test@example.com')
         .should('be.visible')
 
-      // 在真实应用中，这里会等待提交响应
-      cy.log('模拟等待服务器响应...')
+      // In real applications, this would wait for submission response
+      cy.log('Simulating server response wait...')
       cy.wait(500)
 
-      // 验证提交结果（模拟）
+      // Verify submission result (simulated)
       cy.get('.action-email').should('be.visible')
-      cy.log('✅ 表单提交流程完成')
+      cy.log('✅ Form submission flow completed')
     })
 
-    it('4.2 文件上传等待', () => {
-      cy.log('📁 模拟文件上传异步处理')
+    it('4.2 File Upload Wait', () => {
+      cy.log('📁 Simulating async file upload handling')
 
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 查找文件上传元素（如果存在）
+      // Look for file upload element (if exists)
       cy.get('body').then(($body) => {
         if ($body.find('input[type="file"]').length > 0) {
-          cy.log('找到文件上传控件')
+          cy.log('File upload control found')
 
-          // 模拟文件选择
+          // Simulate file selection
           cy.get('input[type="file"]').selectFile({
             contents: 'cypress/fixtures/example.json',
             fileName: 'test-file.json'
           }, { force: true })
 
-          // 等待上传处理
+          // Wait for upload processing
           cy.wait(1000)
         } else {
-          cy.log('未找到文件上传控件，使用模拟场景')
+          cy.log('File upload control not found, using simulated scenario')
 
-          // 模拟文件上传流程
+          // Simulate file upload flow
           cy.get('.action-email')
             .clear()
             .type('file-upload@example.com')
 
-          cy.log('模拟文件上传中...')
+          cy.log('Simulating file upload...')
           cy.wait(800)
-          cy.log('✅ 文件上传完成（模拟）')
+          cy.log('✅ File upload completed (simulated)')
         }
       })
     })
 
-    it('4.3 搜索自动完成等待', () => {
-      cy.log('🔍 模拟搜索自动完成')
+    it('4.3 Search Autocomplete Wait', () => {
+      cy.log('🔍 Simulating search autocomplete')
 
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 模拟搜索输入
+      // Simulate search input
       cy.get('.action-email')
         .clear()
         .type('search-query')
 
-      // 模拟等待搜索结果
-      cy.log('等待搜索结果...')
+      // Simulate waiting for search results
+      cy.log('Waiting for search results...')
       cy.wait(300)
 
-      // 继续输入触发更多建议
+      // Continue typing to trigger more suggestions
       cy.get('.action-email')
         .type('@example')
 
-      cy.log('等待更新的搜索建议...')
+      cy.log('Waiting for updated search suggestions...')
       cy.wait(200)
 
-      // 完成搜索
+      // Complete search
       cy.get('.action-email')
         .type('.com')
         .should('have.value', 'search-query@example.com')
 
-      cy.log('✅ 搜索自动完成流程完成')
+      cy.log('✅ Search autocomplete flow completed')
     })
 
-    it('4.4 分页加载等待', () => {
-      cy.log('📄 模拟分页异步加载')
+    it('4.4 Pagination Load Wait', () => {
+      cy.log('📄 Simulating async pagination loading')
 
       cy.visit('https://example.cypress.io/commands/querying')
 
-      // 等待初始内容加载
+      // Wait for initial content to load
       cy.get('h1').should('be.visible')
       cy.get('li').should('have.length.greaterThan', 0)
 
       const initialItemCount = 0
       cy.get('li').then(($items) => {
         const currentCount = $items.length
-        cy.log(`初始项目数量: ${currentCount}`)
+        cy.log(`Initial item count: ${currentCount}`)
 
-        // 模拟滚动到底部触发更多加载
+        // Simulate scrolling to bottom to trigger more loading
         cy.scrollTo('bottom')
         cy.wait(500)
 
-        // 检查是否有新内容
+        // Check if new content exists
         cy.get('li').should('have.length.greaterThan', 0)
-        cy.log('✅ 分页加载检查完成')
+        cy.log('✅ Pagination load check completed')
       })
     })
 
-    it('4.5 实时数据更新等待', () => {
-      cy.log('🔄 模拟实时数据更新')
+    it('4.5 Real-time Data Update Wait', () => {
+      cy.log('🔄 Simulating real-time data updates')
 
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 记录初始状态
+      // Record initial state
       let initialTime = Date.now()
       cy.wrap(initialTime).as('startTime')
 
-      // 模拟数据更新检查
+      // Simulate data update check
       const checkForUpdates = () => {
         cy.get('@startTime').then((startTime) => {
           const currentTime = Date.now()
           const elapsed = currentTime - startTime
 
-          cy.log(`检查更新，已过时间: ${elapsed}ms`)
+          cy.log(`Checking for updates, elapsed time: ${elapsed}ms`)
 
           if (elapsed < 2000) {
-            // 继续等待更新
+            // Continue waiting for updates
             cy.wait(200)
             checkForUpdates()
           } else {
-            cy.log('✅ 模拟数据更新完成')
+            cy.log('✅ Simulated data update completed')
           }
         })
       }
 
-      // 开始检查更新
+      // Start checking for updates
       checkForUpdates()
 
-      // 验证最终状态
+      // Verify final state
       cy.get('body').should('be.visible')
     })
 
-    it('4.6 网络错误恢复', () => {
-      cy.log('🛠️ 处理网络错误和重试')
+    it('4.6 Network Error Recovery', () => {
+      cy.log('🛠️ Handling network errors and retries')
 
-      // 模拟网络错误
+      // Simulate network error
       cy.intercept('GET', '**/commands/network-requests', {
         statusCode: 500,
         body: { error: 'Server Error' }
@@ -457,7 +457,7 @@ describe('Day 5: 异步操作与等待机制', () => {
 
       cy.visit('https://example.cypress.io')
 
-      // 尝试访问可能失败的页面
+      // Try to access page that may fail
       cy.get('body').then(($body) => {
         if ($body.find('a[href*="network-requests"]').length > 0) {
           cy.contains('Network Requests').click()
@@ -465,45 +465,45 @@ describe('Day 5: 异步操作与等待机制', () => {
         }
       })
 
-      // 模拟错误恢复
+      // Simulate error recovery
       cy.intercept('GET', '**/commands/network-requests', {
         statusCode: 200,
         body: '<html><body><h1>Network Recovered</h1></body></html>'
       }).as('networkRecovered')
 
-      // 重试操作
-      cy.log('网络已恢复，重试请求')
+      // Retry operation
+      cy.log('Network recovered, retrying request')
       cy.wait(1000)
 
-      cy.log('✅ 网络错误恢复处理完成')
+      cy.log('✅ Network error recovery handling completed')
     })
   })
 
   // ============================================
-  // 模块5: 性能和超时管理
+  // Module 5: Performance & Timeout Management
   // ============================================
-  describe('模块5: 超时和性能管理', () => {
+  describe('Module 5: Timeout & Performance Management', () => {
 
-    it('5.1 自定义超时设置', () => {
-      cy.log('⏱️ 学习自定义超时设置')
+    it('5.1 Custom Timeout Configuration', () => {
+      cy.log('⏱️ Learning custom timeout configuration')
 
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 为特定操作设置较长超时
+      // Set longer timeout for specific operations
       cy.get('.action-email', { timeout: 10000 })
         .should('be.visible')
         .clear({ timeout: 5000 })
         .type('timeout-test@example.com', { delay: 100 })
 
-      // 验证超时设置有效
+      // Verify timeout configuration is effective
       cy.get('.action-email', { timeout: 8000 })
         .should('have.value', 'timeout-test@example.com')
 
-      cy.log('✅ 自定义超时测试完成')
+      cy.log('✅ Custom timeout test completed')
     })
 
-    it('5.2 性能监控', () => {
-      cy.log('📊 监控操作性能')
+    it('5.2 Performance Monitoring', () => {
+      cy.log('📊 Monitoring operation performance')
 
       const startTime = performance.now()
 
@@ -515,21 +515,21 @@ describe('Day 5: 异步操作与等待机制', () => {
         .then(() => {
           const endTime = performance.now()
           const duration = endTime - startTime
-          cy.log(`操作耗时: ${duration.toFixed(2)}ms`)
+          cy.log(`Operation duration: ${duration.toFixed(2)}ms`)
 
-          // 验证性能在合理范围内
-          expect(duration).to.be.lessThan(10000) // 小于10秒
+          // Verify performance is within reasonable range
+          expect(duration).to.be.lessThan(10000) // Less than 10 seconds
         })
 
-      cy.log('✅ 性能监控测试完成')
+      cy.log('✅ Performance monitoring test completed')
     })
 
-    it('5.3 批量操作优化', () => {
-      cy.log('⚡ 优化批量操作性能')
+    it('5.3 Batch Operation Optimization', () => {
+      cy.log('⚡ Optimizing batch operation performance')
 
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 批量操作模拟
+      // Batch operation simulation
       const testEmails = [
         'batch1@example.com',
         'batch2@example.com',
@@ -537,48 +537,48 @@ describe('Day 5: 异步操作与等待机制', () => {
       ]
 
       testEmails.forEach((email, index) => {
-        cy.log(`批量测试 ${index + 1}/${testEmails.length}: ${email}`)
+        cy.log(`Batch test ${index + 1}/${testEmails.length}: ${email}`)
 
         cy.get('.action-email')
           .clear()
           .type(email)
           .should('have.value', email)
 
-        // 短暂等待避免过快操作
+        // Brief wait to avoid too fast operations
         cy.wait(200)
       })
 
-      cy.log('✅ 批量操作优化完成')
+      cy.log('✅ Batch operation optimization completed')
     })
   })
 })
 
 // ============================================
-// Day 5 模块2总结
+// Day 5 Module 2 Summary
 // ============================================
 /*
-🎯 学习成果：
-□ 理解隐式等待vs显式等待的区别
-□ 掌握cy.wait()的正确使用场景
-□ 学会使用条件等待和重试机制
-□ 掌握cy.intercept()网络拦截基础
-□ 能够处理动态加载内容
-□ 学会处理复杂异步场景
-□ 掌握性能监控和超时管理
+🎯 Learning Outcomes:
+□ Understand the difference between implicit and explicit waits
+□ Master the correct use cases for cy.wait()
+□ Learn to use conditional waits and retry mechanisms
+□ Master cy.intercept() network interception basics
+□ Able to handle dynamically loaded content
+□ Learn to handle complex async scenarios
+□ Master performance monitoring and timeout management
 
-🔥 关键技巧：
-1. 优先使用条件等待而不是固定时间等待
-2. 网络拦截可以控制测试环境
-3. 超时设置要合理，不能过短或过长
-4. 使用别名管理网络请求
-5. 轮询检查适用于状态变化场景
+🔥 Key Tips:
+1. Prefer conditional waits over fixed time waits
+2. Network interception can control test environment
+3. Timeout settings should be reasonable, not too short or long
+4. Use aliases to manage network requests
+5. Polling checks are suitable for state change scenarios
 
-⚠️ 注意事项：
-1. 避免过度使用cy.wait()固定时间
-2. 网络拦截要在beforeEach中设置
-3. 超时时间要根据实际情况调整
-4. 异步操作要有适当的错误处理
+⚠️ Important Notes:
+1. Avoid overusing cy.wait() with fixed times
+2. Network interceptions should be set in beforeEach
+3. Timeout durations should be adjusted based on actual situations
+4. Async operations should have proper error handling
 
-📈 下一步：
-Day 5 模块3 将学习综合实战项目应用
+📈 Next Steps:
+Day 5 Module 3 will cover comprehensive practical project applications
 */
