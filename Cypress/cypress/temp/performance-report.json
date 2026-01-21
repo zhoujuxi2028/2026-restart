@@ -1,0 +1,45 @@
+{
+  "testInfo": {
+    "url": "https://example.cypress.io",
+    "timestamp": "2026-01-21T07:35:20.320Z",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Cypress/15.8.2 Chrome/138.0.7204.251 Electron/37.6.0 Safari/537.36",
+    "viewport": {
+      "width": 1000,
+      "height": 660
+    }
+  },
+  "timings": {
+    "pageLoad": 3,
+    "domContentLoaded": null,
+    "firstContentfulPaint": null
+  },
+  "resources": {
+    "count": 0,
+    "totalSize": 0,
+    "byType": {
+      "images": {
+        "count": 0,
+        "size": 0
+      },
+      "scripts": {
+        "count": 0,
+        "size": 0
+      },
+      "stylesheets": {
+        "count": 0,
+        "size": 0
+      },
+      "other": {
+        "count": 0,
+        "size": 0
+      }
+    }
+  },
+  "coreWebVitals": {
+    "fcp": null,
+    "lcp": null,
+    "cls": 0.03398571597330925,
+    "tti": null
+  },
+  "score": 100
+}
