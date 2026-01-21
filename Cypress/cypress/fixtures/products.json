@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "name": "笔记本电脑",
+    "category": "电子产品",
+    "price": 5999,
+    "stock": 15,
+    "description": "高性能办公笔记本",
+    "image": "laptop.jpg",
+    "features": ["16GB RAM", "512GB SSD", "15.6寸屏幕"]
+  },
+  {
+    "id": 2,
+    "name": "无线鼠标",
+    "category": "配件",
+    "price": 99,
+    "stock": 50,
+    "description": "人体工程学设计",
+    "image": "mouse.jpg",
+    "features": ["2.4GHz无线", "1600DPI", "节能模式"]
+  },
+  {
+    "id": 3,
+    "name": "机械键盘",
+    "category": "配件",
+    "price": 299,
+    "stock": 30,
+    "description": "青轴机械键盘",
+    "image": "keyboard.jpg",
+    "features": ["RGB背光", "青轴", "全键无冲"]
+  },
+  {
+    "id": 4,
+    "name": "显示器",
+    "category": "电子产品",
+    "price": 1299,
+    "stock": 0,
+    "description": "27寸4K显示器",
+    "image": "monitor.jpg",
+    "features": ["4K分辨率", "IPS面板", "HDR支持"]
+  },
+  {
+    "id": 5,
+    "name": "耳机",
+    "category": "音频",
+    "price": 599,
+    "stock": 25,
+    "description": "降噪耳机",
+    "image": "headphone.jpg",
+    "features": ["主动降噪", "40小时续航", "蓝牙5.0"]
+  }
+]

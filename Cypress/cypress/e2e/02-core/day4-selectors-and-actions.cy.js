@@ -436,4 +436,174 @@ describe('电商网站测试', () => {
 - **维护性**：良好的测试组织使代码更易维护
 
 完成 Day 8 后，你将掌握完整的 Cypress 测试编写技能！
-*/
+
+  // ============================================
+  // 自我检测和学习评估
+  // ============================================
+  describe('📊 Day 4 自我检测评估', () => {
+
+    it('📋 Day 4 学习成果检测', () => {
+      const skills = {
+        advancedSelectors: false,
+        formHandling: false,
+        elementTraversal: false,
+        complexInteractions: false,
+        advancedAssertions: false,
+        practicalApplication: false
+      }
+
+      cy.log('🔍 开始 Day 4 学习成果检测...')
+
+      // 检测1：高级选择器
+      cy.visit('https://example.cypress.io/commands/querying')
+      cy.get('[data-cy="data-cy-query"]').should('exist').then(() => {
+        skills.advancedSelectors = true
+        cy.log('✅ 高级选择器：通过')
+      })
+
+      // 检测2：表单处理
+      cy.visit('https://example.cypress.io/commands/actions')
+      cy.get('.action-email')
+        .clear()
+        .type('day4@test.com')
+        .should('have.value', 'day4@test.com').then(() => {
+        skills.formHandling = true
+        cy.log('✅ 表单处理：通过')
+      })
+
+      // 检测3：元素遍历
+      cy.get('.action-form')
+        .find('.action-email')
+        .should('exist').then(() => {
+        skills.elementTraversal = true
+        cy.log('✅ 元素遍历：通过')
+      })
+
+      // 检测4：复杂交互
+      cy.get('.action-btn').should('be.visible')
+      cy.get('.action-canvas').should('exist').then(() => {
+        skills.complexInteractions = true
+        cy.log('✅ 复杂交互：通过')
+      })
+
+      // 检测5：高级断言
+      cy.get('.action-email')
+        .should('be.visible')
+        .and('not.be.disabled')
+        .and('have.attr', 'type', 'email').then(() => {
+        skills.advancedAssertions = true
+        cy.log('✅ 高级断言：通过')
+      })
+
+      // 检测6：实际应用
+      cy.get('.action-email')
+        .clear()
+        .type('practical@test.com')
+        .should('have.value', 'practical@test.com')
+      cy.get('.action-full-name')
+        .clear()
+        .type('Day 4 Test User').then(() => {
+        skills.practicalApplication = true
+        cy.log('✅ 实际应用：通过')
+      })
+
+      // 生成检测报告
+      cy.then(() => {
+        const passedSkills = Object.values(skills).filter(Boolean).length
+        const totalSkills = Object.keys(skills).length
+        const passRate = (passedSkills / totalSkills * 100).toFixed(1)
+
+        cy.log('')
+        cy.log('📊 Day 4 学习成果报告：')
+        cy.log(`通过技能: ${passedSkills}/${totalSkills}`)
+        cy.log(`通过率: ${passRate}%`)
+
+        const skillNames = {
+          advancedSelectors: '高级选择器',
+          formHandling: '表单处理',
+          elementTraversal: '元素遍历',
+          complexInteractions: '复杂交互',
+          advancedAssertions: '高级断言',
+          practicalApplication: '实际应用'
+        }
+
+        Object.keys(skills).forEach(skill => {
+          const status = skills[skill] ? '✅' : '❌'
+          cy.log(`${status} ${skillNames[skill]}`)
+        })
+
+        if (passRate >= 90) {
+          cy.log('🏆 卓越！Day 4 学习目标完美达成！')
+          cy.log('🚀 你已经掌握了核心功能的高级用法！')
+          cy.log('📚 可以自信地继续 Day 5 学习')
+        } else if (passRate >= 80) {
+          cy.log('🎉 优秀！Day 4 学习目标达成！')
+          cy.log('📚 准备进入 Day 5 异步处理学习')
+        } else if (passRate >= 70) {
+          cy.log('👍 良好！Day 4 基本目标达成')
+          cy.log('💪 建议加强练习后进入 Day 5')
+        } else {
+          cy.log('⚠️ 建议重点复习 Day 4 内容')
+          cy.log('🔄 特别关注未通过的技能点')
+        }
+
+        expect(passedSkills).to.be.at.least(5) // 至少通过5个技能点
+      })
+    })
+
+    it('📝 Day 4 学习建议和下一步', () => {
+      cy.then(() => {
+        cy.log('💡 Day 4 学习建议：')
+        cy.log('1. 🎯 熟练掌握各种选择器策略')
+        cy.log('2. 📝 深入理解表单元素的处理方法')
+        cy.log('3. 🔍 掌握元素遍历和过滤技巧')
+        cy.log('4. 🎪 练习复杂的用户交互场景')
+        cy.log('5. ✅ 运用多样化的断言验证')
+        cy.log('')
+        cy.log('🚀 下一步学习：')
+        cy.log('📖 Day 5: 异步操作和测试组织')
+        cy.log('🎯 重点：过滤遍历、异步处理、Hooks使用')
+        cy.log('💪 目标：掌握第二阶段核心技能')
+      })
+    })
+  })
+})
+
+/**
+ * 🌟 Day 4 核心学习要点总结：
+ *
+ * 1. **高级选择器掌握**
+ *    - 优先级策略：[data-cy] > #id > .class > tag
+ *    - 属性选择器的灵活运用
+ *    - 复合选择器的使用技巧
+ *
+ * 2. **表单处理精通**
+ *    - 各种输入类型的处理
+ *    - 下拉菜单和复选框操作
+ *    - 表单验证和错误处理
+ *
+ * 3. **元素遍历技巧**
+ *    - .find() 查找子元素
+ *    - .parent() 和 .children() 导航
+ *    - .first()、.last()、.eq() 索引选择
+ *
+ * 4. **交互操作进阶**
+ *    - 复杂的点击操作
+ *    - 键盘事件处理
+ *    - 鼠标交互技巧
+ *
+ * 5. **断言系统深入**
+ *    - 链式断言的高效使用
+ *    - 属性和状态验证
+ *    - 自定义断言逻辑
+ *
+ * 💡 **核心概念**：
+ * - 选择器的性能影响
+ * - 元素状态的动态验证
+ * - 交互操作的时机控制
+ * - 断言链的逻辑组织
+ *
+ * 🎯 **第二阶段进展**：
+ * 已掌握核心功能的基础应用，
+ * 准备学习异步处理和测试组织
+ */

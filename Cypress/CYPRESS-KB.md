@@ -409,12 +409,355 @@ cy.get('body').then(($body) => {
 
 ---
 
+## 🔧 测试组织与生命周期管理
+
+### 生命周期钩子详解
+
+#### 钩子执行顺序
+```javascript
+describe('测试套件', () => {
+  before(() => {
+    // 在所有测试开始前执行一次
+    cy.log('套件开始')
+  })
+
+  beforeEach(() => {
+    // 每个测试前执行
+    cy.visit('/app')
+  })
+
+  afterEach(() => {
+    // 每个测试后执行
+    cy.log('测试完成')
+  })
+
+  after(() => {
+    // 在所有测试结束后执行一次
+    cy.log('套件结束')
+  })
+
+  it('测试用例', () => {
+    // 测试逻辑
+  })
+})
+```
+
+#### 数据共享模式
+```javascript
+describe('数据共享示例', () => {
+  let sharedData
+
+  before(() => {
+    // 设置全局测试数据
+    sharedData = { userId: 123, userName: 'testUser' }
+    cy.wrap(sharedData).as('testData')
+  })
+
+  beforeEach(() => {
+    // 每个测试前重置状态
+    cy.get('@testData').then((data) => {
+      cy.log(`当前用户: ${data.userName}`)
+    })
+  })
+})
+```
+
+### 测试控制技巧
+
+#### 条件执行模式
+```javascript
+// 基于环境的条件执行
+const isProd = Cypress.env('NODE_ENV') === 'production'
+
+if (isProd) {
+  it('生产环境测试', () => {
+    // 生产环境特定的测试
+  })
+} else {
+  it('开发环境测试', () => {
+    // 开发环境特定的测试
+  })
+}
+
+// 基于浏览器的条件执行
+const isChrome = Cypress.browser.name === 'chrome'
+
+it('浏览器特定测试', () => {
+  if (isChrome) {
+    // Chrome特定的操作
+    cy.get('[data-cy="chrome-feature"]').should('exist')
+  } else {
+    // 其他浏览器的备选方案
+    cy.log('跳过Chrome特定功能')
+  }
+})
+```
+
+#### 测试跳过与隔离
+```javascript
+describe('测试控制示例', () => {
+  // 只执行这个测试
+  it.only('重要测试', () => {
+    cy.visit('/critical-page')
+  })
+
+  // 跳过这个测试
+  it.skip('暂时跳过的测试', () => {
+    // 这个测试不会执行
+  })
+
+  // 跳过整个测试组
+  describe.skip('跳过的测试组', () => {
+    it('不会执行', () => {})
+  })
+})
+```
+
+---
+
+## ⏰ 异步操作与等待机制
+
+### 等待策略深入
+
+#### 隐式等待 vs 显式等待
+```javascript
+// 隐式等待（推荐）- Cypress自动重试
+cy.get('.loading-element').should('be.visible')
+cy.get('.content').should('not.contain', 'Loading...')
+
+// 显式等待（谨慎使用）
+cy.wait(2000) // 避免使用固定时间等待
+
+// 条件等待（最佳实践）
+cy.get('[data-cy="submit-btn"]')
+  .should('be.visible')
+  .should('be.enabled')
+  .should('not.be.disabled')
+```
+
+#### 自定义等待条件
+```javascript
+// 等待多个条件满足
+cy.get('.form').within(() => {
+  cy.get('input[name="email"]').should('be.visible')
+  cy.get('input[name="password"]').should('be.visible')
+  cy.get('button[type="submit"]').should('be.enabled')
+})
+
+// 等待元素数量达到预期
+cy.get('.list-item').should('have.length.greaterThan', 5)
+
+// 等待文本内容变化
+cy.get('.status').should('not.contain', 'Loading')
+cy.get('.status').should('contain', 'Ready')
+```
+
+#### 轮询检查模式
+```javascript
+// 轮询检查状态变化
+const checkStatus = () => {
+  cy.get('.status-indicator').then(($el) => {
+    const status = $el.text()
+    if (status === 'Processing') {
+      cy.wait(1000)
+      checkStatus() // 递归检查
+    } else {
+      cy.log(`状态已变更为: ${status}`)
+    }
+  })
+}
+
+checkStatus()
+```
+
+### 网络拦截基础
+
+#### 基本拦截模式
+```javascript
+describe('网络拦截示例', () => {
+  beforeEach(() => {
+    // 拦截API请求
+    cy.intercept('GET', '/api/users', { fixture: 'users.json' }).as('getUsers')
+    cy.intercept('POST', '/api/login', { statusCode: 200, body: { success: true } }).as('login')
+  })
+
+  it('API拦截测试', () => {
+    cy.visit('/users')
+    cy.wait('@getUsers').then((interception) => {
+      expect(interception.response.statusCode).to.equal(200)
+    })
+  })
+})
+```
+
+#### 动态响应处理
+```javascript
+// 模拟网络延迟
+cy.intercept('GET', '/api/data', (req) => {
+  req.reply((res) => {
+    res.delay = 2000 // 2秒延迟
+    res.send(res.body)
+  })
+}).as('slowResponse')
+
+// 模拟网络错误
+cy.intercept('POST', '/api/submit', {
+  statusCode: 500,
+  body: { error: 'Server Error' }
+}).as('serverError')
+```
+
+---
+
+## 🏗️ 测试项目组织架构
+
+### 数据驱动测试
+
+#### 测试数据管理
+```javascript
+// 集中式测试数据
+const testData = {
+  users: [
+    { email: 'admin@test.com', role: 'admin' },
+    { email: 'user@test.com', role: 'user' }
+  ],
+  products: [
+    { id: 1, name: 'Product A', price: 99.99 },
+    { id: 2, name: 'Product B', price: 149.99 }
+  ]
+}
+
+describe('数据驱动测试', () => {
+  before(() => {
+    cy.wrap(testData).as('testData')
+  })
+
+  // 使用数据驱动生成测试用例
+  testData.users.forEach((user) => {
+    it(`${user.role}用户登录测试`, () => {
+      cy.login(user.email, user.password)
+      cy.verifyRole(user.role)
+    })
+  })
+})
+```
+
+#### 批量测试模式
+```javascript
+// 批量表单测试
+const formFields = [
+  { name: 'email', value: 'test@example.com', validation: 'email' },
+  { name: 'phone', value: '+1-555-0123', validation: 'phone' },
+  { name: 'name', value: 'John Doe', validation: 'required' }
+]
+
+formFields.forEach((field) => {
+  it(`${field.name} 字段验证`, () => {
+    cy.get(`input[name="${field.name}"]`)
+      .clear()
+      .type(field.value)
+      .blur()
+      .should('be.valid')
+  })
+})
+```
+
+### 错误处理最佳实践
+
+#### 优雅的错误处理
+```javascript
+// 条件性操作
+cy.get('body').then(($body) => {
+  if ($body.find('.optional-element').length > 0) {
+    cy.get('.optional-element').click()
+  } else {
+    cy.log('可选元素不存在，跳过操作')
+  }
+})
+
+// 错误恢复机制
+cy.get('.submit-btn').click()
+cy.get('body').then(($body) => {
+  if ($body.find('.error-message').length > 0) {
+    cy.log('检测到错误，执行恢复操作')
+    cy.get('.retry-btn').click()
+  }
+})
+```
+
+#### 超时和重试策略
+```javascript
+// 自定义超时设置
+cy.get('.slow-element', { timeout: 15000 }).should('be.visible')
+
+// 操作级别的超时
+cy.get('input').type('text', { delay: 100 })
+cy.get('button').click({ timeout: 8000 })
+
+// 断言级别的超时
+cy.get('.result').should('contain', 'Success', { timeout: 12000 })
+```
+
+---
+
+## 📈 性能监控与优化
+
+### 测试性能监控
+```javascript
+// 操作耗时监控
+it('性能监控示例', () => {
+  const startTime = performance.now()
+
+  cy.visit('/app')
+  cy.get('.main-content').should('be.visible')
+
+  cy.then(() => {
+    const endTime = performance.now()
+    const loadTime = endTime - startTime
+    cy.log(`页面加载耗时: ${loadTime.toFixed(2)}ms`)
+
+    // 性能断言
+    expect(loadTime).to.be.lessThan(5000) // 小于5秒
+  })
+})
+```
+
+### 测试优化技巧
+```javascript
+// 批量操作优化
+const testCases = ['case1', 'case2', 'case3']
+
+// 优化前：每次都重新访问
+testCases.forEach((testCase) => {
+  it(`测试 ${testCase}`, () => {
+    cy.visit('/app') // 重复访问
+    cy.testCase(testCase)
+  })
+})
+
+// 优化后：共享页面状态
+describe('批量测试优化', () => {
+  before(() => {
+    cy.visit('/app') // 一次性访问
+  })
+
+  testCases.forEach((testCase) => {
+    it(`测试 ${testCase}`, () => {
+      cy.testCase(testCase) // 直接测试
+    })
+  })
+})
+```
+
+---
+
 ## 📝 更新日志
 
 | 日期 | 更新内容 |
 |-----|---------|
 | 2026-01-20 | 创建知识库，添加CSS选择器和测试执行控制章节 |
 | 2026-01-20 | 大幅扩展CSS选择器章节：增加6种选择器类型完整参考、优先级说明、性能考虑 |
+| 2026-01-20 | 新增Day5内容：测试组织与生命周期管理、异步操作与等待机制、测试项目组织架构、性能监控与优化 |
 
 ---
 

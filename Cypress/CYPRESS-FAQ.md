@@ -87,4 +87,126 @@ cy.get('result').should('contain', 'expected')
 
 ---
 
+## Q11: 生命周期钩子 before 和 beforeEach 有什么区别？
+**A**:
+- `before()`: 在整个测试套件开始前执行一次，适合设置全局数据
+- `beforeEach()`: 在每个测试用例前都执行，适合重置测试环境
+- 执行顺序：before → beforeEach → 测试 → afterEach → after
+
+---
+
+## Q12: 什么时候使用 cy.wait() 和固定时间等待？
+**A**: **尽量避免使用固定时间等待**
+- ❌ 不好：`cy.wait(2000)` - 可能太慢或不够长
+- ✅ 推荐：`cy.get('.loading').should('not.exist')` - 条件等待
+- ✅ 可以：等待网络请求 `cy.wait('@apiCall')`
+
+---
+
+## Q13: 如何在测试中共享数据？
+**A**: 使用别名系统：
+```javascript
+before(() => {
+  const testData = { user: 'john', id: 123 }
+  cy.wrap(testData).as('testData')
+})
+
+it('使用共享数据', () => {
+  cy.get('@testData').then((data) => {
+    cy.log(`用户ID: ${data.id}`)
+  })
+})
+```
+
+---
+
+## Q14: cy.intercept() 和真实API请求有什么区别？
+**A**:
+- `cy.intercept()`: 拦截并模拟网络请求，可以控制响应内容和时间
+- 真实API: 依赖外部服务，可能不稳定且较慢
+- 建议：单元测试用intercept，集成测试用真实API
+
+---
+
+## Q15: 如何处理"Element is not visible"错误？
+**A**: 检查以下几点：
+1. 元素是否真的存在：`cy.get('selector').should('exist')`
+2. 等待元素可见：`cy.get('selector').should('be.visible')`
+3. 滚动到元素：`cy.get('selector').scrollIntoView()`
+4. 使用 `{ force: true }` 强制操作（谨慎使用）
+
+---
+
+## Q16: 测试用例之间如何保持独立？
+**A**: 遵循以下原则：
+1. 每个测试前重置状态（beforeEach）
+2. 不依赖其他测试的结果
+3. 清理测试产生的数据（afterEach）
+4. 使用唯一的测试数据避免冲突
+
+---
+
+## Q17: 如何模拟网络错误和慢网络？
+**A**:
+```javascript
+// 模拟网络错误
+cy.intercept('GET', '/api/data', {
+  statusCode: 500,
+  body: { error: 'Server Error' }
+})
+
+// 模拟慢网络
+cy.intercept('GET', '/api/data', (req) => {
+  req.reply((res) => {
+    res.delay = 2000  // 2秒延迟
+    res.send(res.body)
+  })
+})
+```
+
+---
+
+## Q18: 如何组织大型测试项目的文件结构？
+**A**: 推荐结构：
+```
+cypress/
+├── e2e/
+│   ├── auth/          # 认证相关测试
+│   ├── products/      # 产品相关测试
+│   └── checkout/      # 结账相关测试
+├── fixtures/          # 测试数据
+├── support/
+│   ├── commands.js    # 自定义命令
+│   └── e2e.js        # 全局配置
+```
+
+---
+
+## Q19: .only() 和 .skip() 在团队合作中要注意什么？
+**A**: 注意事项：
+- ❌ 不要提交包含 `.only()` 的代码到主分支
+- ❌ 长期 `.skip()` 测试会降低测试覆盖率
+- ✅ 本地调试时使用 `.only()` 隔离测试
+- ✅ 临时 `.skip()` 要及时修复
+
+---
+
+## Q20: 如何在Cypress中实现数据驱动测试？
+**A**: 使用数组和循环：
+```javascript
+const testCases = [
+  { email: 'user1@test.com', expectedRole: 'admin' },
+  { email: 'user2@test.com', expectedRole: 'user' }
+]
+
+testCases.forEach((testCase) => {
+  it(`测试 ${testCase.email}`, () => {
+    cy.login(testCase.email)
+    cy.verifyRole(testCase.expectedRole)
+  })
+})
+```
+
+---
+
 *最后更新: 2026-01-20*
