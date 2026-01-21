@@ -943,7 +943,7 @@ describe('Day 14: Performance and Monitoring', () => {
               cy.log('')
               cy.log('⚠️  Note: Minor regressions detected but within acceptable range (<50%)')
             }
-            expect(severeRegressions.length).to.eq(0)
+            expect(severeRegressions.length).to.equal(0)
           })
         })
       })
