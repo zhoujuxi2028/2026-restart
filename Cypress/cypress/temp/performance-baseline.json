@@ -1,0 +1,13 @@
+{
+  "url": "https://example.cypress.io",
+  "metrics": {
+    "pageLoad": 2,
+    "domContentLoaded": null,
+    "firstContentfulPaint": null,
+    "resourceCount": 0,
+    "totalResourceSize": 0
+  },
+  "timestamp": "2026-01-21T07:35:20.248Z",
+  "environment": "test",
+  "version": "1.0.0"
+}

@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Performance Test Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .header { background: #f0f8ff; padding: 20px; border-radius: 8px; }
+        .score { font-size: 48px; font-weight: bold; text-align: center; margin: 20px 0; }
+        .score.good { color: #28a745; }
+        .score.average { color: #ffc107; }
+        .score.poor { color: #dc3545; }
+        .metric { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 4px; }
+        .metric-name { font-weight: bold; }
+        .metric-value { float: right; }
+        .resources { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 20px 0; }
+        .resource-type { padding: 15px; background: #e9ecef; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Cypress Performance Test Report</h1>
+        <p><strong>Test URL:</strong> https://example.cypress.io</p>
+        <p><strong>Test Time:</strong> 2026-01-21T07:35:20.320Z</p>
+        <p><strong>Viewport Size:</strong> 1000 x 660</p>
+    </div>
+
+    <div class="score good">
+        Performance Score: 100/100
+    </div>
+
+    <h2>Core Metrics</h2>
+    <div class="metric">
+        <span class="metric-name">Page Load Time</span>
+        <span class="metric-value">3ms</span>
+    </div>
+    <div class="metric">
+        <span class="metric-name">DOM Content Loaded</span>
+        <span class="metric-value">N/Ams</span>
+    </div>
+    <div class="metric">
+        <span class="metric-name">First Contentful Paint</span>
+        <span class="metric-value">N/Ams</span>
+    </div>
+
+    <h2>Resource Analysis</h2>
+    <div class="metric">
+        <span class="metric-name">Total Resource Count</span>
+        <span class="metric-value">0</span>
+    </div>
+    <div class="metric">
+        <span class="metric-name">Total Resource Size</span>
+        <span class="metric-value">0.00 KB</span>
+    </div>
+
+    <div class="resources">
+        <div class="resource-type">
+            <h3>Images</h3>
+            <p>Count: 0</p>
+            <p>Size: 0.00 KB</p>
+        </div>
+        <div class="resource-type">
+            <h3>Scripts</h3>
+            <p>Count: 0</p>
+            <p>Size: 0.00 KB</p>
+        </div>
+        <div class="resource-type">
+            <h3>Stylesheets</h3>
+            <p>Count: 0</p>
+            <p>Size: 0.00 KB</p>
+        </div>
+        <div class="resource-type">
+            <h3>Other</h3>
+            <p>Count: 0</p>
+            <p>Size: 0.00 KB</p>
+        </div>
+    </div>
+</body>
+</html>

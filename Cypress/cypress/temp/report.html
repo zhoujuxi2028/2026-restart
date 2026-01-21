@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Report - File Operations</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #f0f0f0; padding: 10px; }
+        .passed { color: green; }
+        .failed { color: red; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Test Report: File Operations</h1>
+        <p>Start Time: 2026-01-21T07:04:23.890Z</p>
+    </div>
+    <table>
+        <tr><th>Test Name</th><th>Status</th><th>Duration</th><th>Error</th></tr>
+        
+            <tr>
+                <td>Read JSON file</td>
+                <td class="passed">passed</td>
+                <td>150ms</td>
+                <td></td>
+            </tr>
+        
+            <tr>
+                <td>Write JSON file</td>
+                <td class="passed">passed</td>
+                <td>89ms</td>
+                <td></td>
+            </tr>
+        
+            <tr>
+                <td>Upload file</td>
+                <td class="failed">failed</td>
+                <td>2300ms</td>
+                <td>File too large</td>
+            </tr>
+        
+    </table>
+</body>
+</html>

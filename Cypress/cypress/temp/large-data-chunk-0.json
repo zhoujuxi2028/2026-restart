@@ -1,0 +1,502 @@
+[
+  {
+    "id": 1,
+    "data": "Large dataset item 1",
+    "timestamp": 1768974498282
+  },
+  {
+    "id": 2,
+    "data": "Large dataset item 2",
+    "timestamp": 1768974498283
+  },
+  {
+    "id": 3,
+    "data": "Large dataset item 3",
+    "timestamp": 1768974498284
+  },
+  {
+    "id": 4,
+    "data": "Large dataset item 4",
+    "timestamp": 1768974498285
+  },
+  {
+    "id": 5,
+    "data": "Large dataset item 5",
+    "timestamp": 1768974498286
+  },
+  {
+    "id": 6,
+    "data": "Large dataset item 6",
+    "timestamp": 1768974498287
+  },
+  {
+    "id": 7,
+    "data": "Large dataset item 7",
+    "timestamp": 1768974498288
+  },
+  {
+    "id": 8,
+    "data": "Large dataset item 8",
+    "timestamp": 1768974498289
+  },
+  {
+    "id": 9,
+    "data": "Large dataset item 9",
+    "timestamp": 1768974498290
+  },
+  {
+    "id": 10,
+    "data": "Large dataset item 10",
+    "timestamp": 1768974498291
+  },
+  {
+    "id": 11,
+    "data": "Large dataset item 11",
+    "timestamp": 1768974498292
+  },
+  {
+    "id": 12,
+    "data": "Large dataset item 12",
+    "timestamp": 1768974498293
+  },
+  {
+    "id": 13,
+    "data": "Large dataset item 13",
+    "timestamp": 1768974498294
+  },
+  {
+    "id": 14,
+    "data": "Large dataset item 14",
+    "timestamp": 1768974498295
+  },
+  {
+    "id": 15,
+    "data": "Large dataset item 15",
+    "timestamp": 1768974498296
+  },
+  {
+    "id": 16,
+    "data": "Large dataset item 16",
+    "timestamp": 1768974498297
+  },
+  {
+    "id": 17,
+    "data": "Large dataset item 17",
+    "timestamp": 1768974498298
+  },
+  {
+    "id": 18,
+    "data": "Large dataset item 18",
+    "timestamp": 1768974498299
+  },
+  {
+    "id": 19,
+    "data": "Large dataset item 19",
+    "timestamp": 1768974498300
+  },
+  {
+    "id": 20,
+    "data": "Large dataset item 20",
+    "timestamp": 1768974498301
+  },
+  {
+    "id": 21,
+    "data": "Large dataset item 21",
+    "timestamp": 1768974498302
+  },
+  {
+    "id": 22,
+    "data": "Large dataset item 22",
+    "timestamp": 1768974498303
+  },
+  {
+    "id": 23,
+    "data": "Large dataset item 23",
+    "timestamp": 1768974498304
+  },
+  {
+    "id": 24,
+    "data": "Large dataset item 24",
+    "timestamp": 1768974498305
+  },
+  {
+    "id": 25,
+    "data": "Large dataset item 25",
+    "timestamp": 1768974498306
+  },
+  {
+    "id": 26,
+    "data": "Large dataset item 26",
+    "timestamp": 1768974498307
+  },
+  {
+    "id": 27,
+    "data": "Large dataset item 27",
+    "timestamp": 1768974498308
+  },
+  {
+    "id": 28,
+    "data": "Large dataset item 28",
+    "timestamp": 1768974498309
+  },
+  {
+    "id": 29,
+    "data": "Large dataset item 29",
+    "timestamp": 1768974498310
+  },
+  {
+    "id": 30,
+    "data": "Large dataset item 30",
+    "timestamp": 1768974498311
+  },
+  {
+    "id": 31,
+    "data": "Large dataset item 31",
+    "timestamp": 1768974498312
+  },
+  {
+    "id": 32,
+    "data": "Large dataset item 32",
+    "timestamp": 1768974498313
+  },
+  {
+    "id": 33,
+    "data": "Large dataset item 33",
+    "timestamp": 1768974498314
+  },
+  {
+    "id": 34,
+    "data": "Large dataset item 34",
+    "timestamp": 1768974498315
+  },
+  {
+    "id": 35,
+    "data": "Large dataset item 35",
+    "timestamp": 1768974498316
+  },
+  {
+    "id": 36,
+    "data": "Large dataset item 36",
+    "timestamp": 1768974498317
+  },
+  {
+    "id": 37,
+    "data": "Large dataset item 37",
+    "timestamp": 1768974498318
+  },
+  {
+    "id": 38,
+    "data": "Large dataset item 38",
+    "timestamp": 1768974498319
+  },
+  {
+    "id": 39,
+    "data": "Large dataset item 39",
+    "timestamp": 1768974498320
+  },
+  {
+    "id": 40,
+    "data": "Large dataset item 40",
+    "timestamp": 1768974498321
+  },
+  {
+    "id": 41,
+    "data": "Large dataset item 41",
+    "timestamp": 1768974498322
+  },
+  {
+    "id": 42,
+    "data": "Large dataset item 42",
+    "timestamp": 1768974498323
+  },
+  {
+    "id": 43,
+    "data": "Large dataset item 43",
+    "timestamp": 1768974498324
+  },
+  {
+    "id": 44,
+    "data": "Large dataset item 44",
+    "timestamp": 1768974498325
+  },
+  {
+    "id": 45,
+    "data": "Large dataset item 45",
+    "timestamp": 1768974498326
+  },
+  {
+    "id": 46,
+    "data": "Large dataset item 46",
+    "timestamp": 1768974498327
+  },
+  {
+    "id": 47,
+    "data": "Large dataset item 47",
+    "timestamp": 1768974498328
+  },
+  {
+    "id": 48,
+    "data": "Large dataset item 48",
+    "timestamp": 1768974498329
+  },
+  {
+    "id": 49,
+    "data": "Large dataset item 49",
+    "timestamp": 1768974498330
+  },
+  {
+    "id": 50,
+    "data": "Large dataset item 50",
+    "timestamp": 1768974498331
+  },
+  {
+    "id": 51,
+    "data": "Large dataset item 51",
+    "timestamp": 1768974498332
+  },
+  {
+    "id": 52,
+    "data": "Large dataset item 52",
+    "timestamp": 1768974498333
+  },
+  {
+    "id": 53,
+    "data": "Large dataset item 53",
+    "timestamp": 1768974498334
+  },
+  {
+    "id": 54,
+    "data": "Large dataset item 54",
+    "timestamp": 1768974498335
+  },
+  {
+    "id": 55,
+    "data": "Large dataset item 55",
+    "timestamp": 1768974498336
+  },
+  {
+    "id": 56,
+    "data": "Large dataset item 56",
+    "timestamp": 1768974498337
+  },
+  {
+    "id": 57,
+    "data": "Large dataset item 57",
+    "timestamp": 1768974498338
+  },
+  {
+    "id": 58,
+    "data": "Large dataset item 58",
+    "timestamp": 1768974498339
+  },
+  {
+    "id": 59,
+    "data": "Large dataset item 59",
+    "timestamp": 1768974498340
+  },
+  {
+    "id": 60,
+    "data": "Large dataset item 60",
+    "timestamp": 1768974498341
+  },
+  {
+    "id": 61,
+    "data": "Large dataset item 61",
+    "timestamp": 1768974498342
+  },
+  {
+    "id": 62,
+    "data": "Large dataset item 62",
+    "timestamp": 1768974498343
+  },
+  {
+    "id": 63,
+    "data": "Large dataset item 63",
+    "timestamp": 1768974498344
+  },
+  {
+    "id": 64,
+    "data": "Large dataset item 64",
+    "timestamp": 1768974498345
+  },
+  {
+    "id": 65,
+    "data": "Large dataset item 65",
+    "timestamp": 1768974498346
+  },
+  {
+    "id": 66,
+    "data": "Large dataset item 66",
+    "timestamp": 1768974498347
+  },
+  {
+    "id": 67,
+    "data": "Large dataset item 67",
+    "timestamp": 1768974498348
+  },
+  {
+    "id": 68,
+    "data": "Large dataset item 68",
+    "timestamp": 1768974498349
+  },
+  {
+    "id": 69,
+    "data": "Large dataset item 69",
+    "timestamp": 1768974498350
+  },
+  {
+    "id": 70,
+    "data": "Large dataset item 70",
+    "timestamp": 1768974498351
+  },
+  {
+    "id": 71,
+    "data": "Large dataset item 71",
+    "timestamp": 1768974498352
+  },
+  {
+    "id": 72,
+    "data": "Large dataset item 72",
+    "timestamp": 1768974498353
+  },
+  {
+    "id": 73,
+    "data": "Large dataset item 73",
+    "timestamp": 1768974498354
+  },
+  {
+    "id": 74,
+    "data": "Large dataset item 74",
+    "timestamp": 1768974498355
+  },
+  {
+    "id": 75,
+    "data": "Large dataset item 75",
+    "timestamp": 1768974498356
+  },
+  {
+    "id": 76,
+    "data": "Large dataset item 76",
+    "timestamp": 1768974498357
+  },
+  {
+    "id": 77,
+    "data": "Large dataset item 77",
+    "timestamp": 1768974498358
+  },
+  {
+    "id": 78,
+    "data": "Large dataset item 78",
+    "timestamp": 1768974498359
+  },
+  {
+    "id": 79,
+    "data": "Large dataset item 79",
+    "timestamp": 1768974498360
+  },
+  {
+    "id": 80,
+    "data": "Large dataset item 80",
+    "timestamp": 1768974498361
+  },
+  {
+    "id": 81,
+    "data": "Large dataset item 81",
+    "timestamp": 1768974498362
+  },
+  {
+    "id": 82,
+    "data": "Large dataset item 82",
+    "timestamp": 1768974498363
+  },
+  {
+    "id": 83,
+    "data": "Large dataset item 83",
+    "timestamp": 1768974498364
+  },
+  {
+    "id": 84,
+    "data": "Large dataset item 84",
+    "timestamp": 1768974498365
+  },
+  {
+    "id": 85,
+    "data": "Large dataset item 85",
+    "timestamp": 1768974498366
+  },
+  {
+    "id": 86,
+    "data": "Large dataset item 86",
+    "timestamp": 1768974498367
+  },
+  {
+    "id": 87,
+    "data": "Large dataset item 87",
+    "timestamp": 1768974498368
+  },
+  {
+    "id": 88,
+    "data": "Large dataset item 88",
+    "timestamp": 1768974498369
+  },
+  {
+    "id": 89,
+    "data": "Large dataset item 89",
+    "timestamp": 1768974498370
+  },
+  {
+    "id": 90,
+    "data": "Large dataset item 90",
+    "timestamp": 1768974498371
+  },
+  {
+    "id": 91,
+    "data": "Large dataset item 91",
+    "timestamp": 1768974498372
+  },
+  {
+    "id": 92,
+    "data": "Large dataset item 92",
+    "timestamp": 1768974498373
+  },
+  {
+    "id": 93,
+    "data": "Large dataset item 93",
+    "timestamp": 1768974498374
+  },
+  {
+    "id": 94,
+    "data": "Large dataset item 94",
+    "timestamp": 1768974498375
+  },
+  {
+    "id": 95,
+    "data": "Large dataset item 95",
+    "timestamp": 1768974498376
+  },
+  {
+    "id": 96,
+    "data": "Large dataset item 96",
+    "timestamp": 1768974498377
+  },
+  {
+    "id": 97,
+    "data": "Large dataset item 97",
+    "timestamp": 1768974498378
+  },
+  {
+    "id": 98,
+    "data": "Large dataset item 98",
+    "timestamp": 1768974498379
+  },
+  {
+    "id": 99,
+    "data": "Large dataset item 99",
+    "timestamp": 1768974498380
+  },
+  {
+    "id": 100,
+    "data": "Large dataset item 100",
+    "timestamp": 1768974498381
+  }
+]

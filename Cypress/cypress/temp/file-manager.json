@@ -1,0 +1,18 @@
+{
+  "files": [
+    {
+      "name": "document.pdf",
+      "size": 1024,
+      "type": "application/pdf",
+      "id": 1,
+      "created": 1768974498349
+    },
+    {
+      "name": "data.json",
+      "size": 512,
+      "type": "application/json",
+      "id": 3,
+      "created": 1768974498349
+    }
+  ]
+}
