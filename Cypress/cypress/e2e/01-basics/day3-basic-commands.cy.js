@@ -1,44 +1,44 @@
 /**
- * 🌱 Day 3: 基本命令深度掌握
+ * 🌱 Day 3: Deep Mastery of Basic Commands
  *
- * 学习目标：
- * - 精通各种选择器策略和最佳实践
- * - 掌握高级点击操作和表单交互
- * - 学习条件性元素处理
- * - 理解动态内容等待机制
+ * Learning Objectives:
+ * - Master various selector strategies and best practices
+ * - Master advanced click operations and form interactions
+ * - Learn conditional element handling
+ * - Understand dynamic content waiting mechanisms
  *
- * 自我检测：
- * ✅ 掌握选择器优先级策略
- * ✅ 能够处理复杂的交互场景
- * ✅ 理解链式断言的正确使用
- * ✅ 掌握条件性元素处理技巧
+ * Self-Assessment:
+ * ✅ Master selector priority strategies
+ * ✅ Able to handle complex interaction scenarios
+ * ✅ Understand the correct use of chained assertions
+ * ✅ Master conditional element handling techniques
  */
 
-describe('🌱 Day 3: 基本命令深度掌握', () => {
+describe('🌱 Day 3: Deep Mastery of Basic Commands', () => {
 
   // ============================================
-  // 基础练习：cy.visit() 的各种用法
+  // Basic Practice: Various uses of cy.visit()
   // ============================================
-  describe('✅ cy.visit() 完全掌握', () => {
+  describe('✅ Complete Mastery of cy.visit()', () => {
 
-    it('访问主页并验证', () => {
+    it('Visit homepage and verify', () => {
       cy.visit('https://example.cypress.io')
       cy.url().should('include', 'example.cypress.io')
       cy.title().should('include', 'Kitchen Sink')
     })
 
-    it('直接访问子页面', () => {
+    it('Direct visit to sub-page', () => {
       cy.visit('https://example.cypress.io/commands/actions')
       cy.url().should('include', '/commands/actions')
       cy.get('h1').should('contain', 'Actions')
     })
 
-    it('访问不同的页面', () => {
-      // 使用确认可用的页面路径
+    it('Visit different pages', () => {
+      // Use confirmed available page paths
       const pages = [
         '/commands/querying',
         '/commands/actions',
-        '/commands/traversal'  // 替换utilities为更稳定的traversal
+        '/commands/traversal'  // Replace utilities with more stable traversal
       ]
 
       pages.forEach(page => {
@@ -50,37 +50,37 @@ describe('🌱 Day 3: 基本命令深度掌握', () => {
   })
 
   // ============================================
-  // 基础练习：cy.get() 选择器精通
+  // Basic Practice: cy.get() Selector Mastery
   // ============================================
-  describe('✅ cy.get() 选择器精通', () => {
+  describe('✅ cy.get() Selector Mastery', () => {
 
     beforeEach(() => {
       cy.visit('https://example.cypress.io/commands/actions')
     })
 
-    it('标签选择器', () => {
+    it('Tag selector', () => {
       cy.get('h1').should('exist')
       cy.get('input').should('have.length.greaterThan', 0)
       cy.get('button').should('exist')
     })
 
-    it('Class 选择器', () => {
+    it('Class selector', () => {
       cy.get('.action-email').should('be.visible')
       cy.get('.form-group').should('exist')
     })
 
-    it('属性选择器', () => {
+    it('Attribute selector', () => {
       cy.get('[placeholder]').should('exist')
       cy.get('[type="email"]').should('be.visible')
       cy.get('input[class*="action"]').should('exist')
     })
 
-    it('复合选择器', () => {
+    it('Compound selector', () => {
       cy.get('input.action-email').should('be.visible')
       cy.get('div input[type="email"]').should('exist')
     })
 
-    it('索引和过滤', () => {
+    it('Index and filtering', () => {
       cy.get('input').first().should('exist')
       cy.get('input').last().should('exist')
       cy.get('input').eq(0).should('exist')
@@ -88,78 +88,78 @@ describe('🌱 Day 3: 基本命令深度掌握', () => {
   })
 
   // ============================================
-  // 基础练习：.click() 交互精通
+  // Basic Practice: .click() Interaction Mastery
   // ============================================
-  describe('✅ .click() 交互精通', () => {
+  describe('✅ .click() Interaction Mastery', () => {
 
     beforeEach(() => {
       cy.visit('https://example.cypress.io/commands/actions')
     })
 
-    it('点击输入框获得焦点', () => {
+    it('Click input to gain focus', () => {
       cy.get('.action-email')
         .click()
         .should('be.focused')
     })
 
-    it('点击按钮（如果存在）', () => {
+    it('Click button (if exists)', () => {
       cy.get('body').then(($body) => {
         const buttons = $body.find('button:visible')
         if (buttons.length > 0) {
           cy.wrap(buttons).first().click()
         } else {
-          cy.log('没有找到可见的按钮，测试通过')
+          cy.log('No visible buttons found, test passed')
         }
       })
     })
 
-    it('强制点击示例', () => {
+    it('Force click example', () => {
       cy.get('.action-email').click({ force: true })
       cy.get('.action-email').should('be.focused')
     })
 
-    it('双击操作', () => {
-      // 使用稳定存在的元素进行双击演示
+    it('Double click operation', () => {
+      // Use stable existing element for double-click demonstration
       cy.get('.action-email').dblclick()
-      // 验证双击后元素仍然存在且可交互
+      // Verify element still exists and is interactive after double-click
       cy.get('.action-email').should('be.visible')
     })
   })
 
   // ============================================
-  // 基础练习：.should() 断言大全
+  // Basic Practice: Complete .should() Assertions
   // ============================================
-  describe('✅ .should() 断言大全', () => {
+  describe('✅ Complete .should() Assertions', () => {
 
     beforeEach(() => {
       cy.visit('https://example.cypress.io/commands/actions')
     })
 
-    it('存在性断言', () => {
+    it('Existence assertions', () => {
       cy.get('.action-email').should('exist')
       cy.get('.non-existent-class').should('not.exist')
     })
 
-    it('可见性断言', () => {
+    it('Visibility assertions', () => {
       cy.get('.action-email').should('be.visible')
       cy.get('h1').should('not.be.hidden')
     })
 
-    it('属性断言', () => {
-      // 分开断言避免链式断言中的类型问题
+    it('Attribute assertions', () => {
+      // Separate assertions to avoid type issues in chained assertions
       cy.get('.action-email').should('have.attr', 'type', 'email')
       cy.get('.action-email').should('have.attr', 'placeholder')
       cy.get('.action-email').should('have.class', 'action-email')
     })
 
-    it('状态断言', () => {
+    it('State assertions', () => {
       cy.get('.action-email')
         .should('be.enabled')
         .click()
         .should('be.focused')
     })
 
-    it('文本和值断言', () => {
+    it('Text and value assertions', () => {
       cy.get('h1').should('contain', 'Actions')
       cy.get('h1').should('not.be.empty')
 
@@ -168,7 +168,7 @@ describe('🌱 Day 3: 基本命令深度掌握', () => {
         .should('have.value', 'test@example.com')
     })
 
-    it('链式断言（推荐方式）', () => {
+    it('Chained assertions (recommended approach)', () => {
       cy.get('.action-email')
         .should('exist')
         .should('be.visible')
@@ -176,49 +176,49 @@ describe('🌱 Day 3: 基本命令深度掌握', () => {
         .should('have.attr', 'type', 'email')
     })
 
-    it('数量断言', () => {
+    it('Quantity assertions', () => {
       cy.get('input').should('have.length.greaterThan', 1)
       cy.get('h1').should('have.length', 1)
     })
   })
 
   // ============================================
-  // 综合练习：四个命令协作
+  // Comprehensive Exercise: Four Commands Collaboration
   // ============================================
-  describe('🔥 综合练习：四命令协作', () => {
+  describe('🔥 Comprehensive Exercise: Four Commands Collaboration', () => {
 
-    it('完整的表单交互流程', () => {
-      // 1. 访问页面
+    it('Complete form interaction flow', () => {
+      // 1. Visit page
       cy.visit('https://example.cypress.io/commands/actions')
       cy.url().should('include', '/commands/actions')
 
-      // 2. 查找元素
+      // 2. Find element
       cy.get('.action-email')
         .should('be.visible')
         .should('be.enabled')
 
-      // 3. 交互操作
+      // 3. Interaction operations
       cy.get('.action-email')
         .click()
         .clear()
         .type('learning@cypress.io')
 
-      // 4. 验证结果
+      // 4. Verify results
       cy.get('.action-email')
         .should('have.value', 'learning@cypress.io')
         .should('be.focused')
     })
 
-    it('多步骤操作练习', () => {
+    it('Multi-step operation practice', () => {
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 邮箱输入
+      // Email input
       cy.get('.action-email')
         .clear()
         .type('step1@test.com')
         .should('have.value', 'step1@test.com')
 
-      // 如果有更多输入框，继续操作
+      // If there are more input fields, continue operation
       cy.get('body').then(($body) => {
         const textInputs = $body.find('input[type="text"]:not(.action-email)')
         if (textInputs.length > 0) {
@@ -230,10 +230,10 @@ describe('🌱 Day 3: 基本命令深度掌握', () => {
       })
     })
 
-    it('错误处理和边界情况', () => {
+    it('Error handling and edge cases', () => {
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 测试空值处理
+      // Test empty value handling
       cy.get('.action-email')
         .clear()
         .should('have.value', '')
@@ -246,106 +246,106 @@ describe('🌱 Day 3: 基本命令深度掌握', () => {
   })
 
   // ============================================
-  // 学习总结：第一阶段知识检验
+  // Learning Summary: Phase One Knowledge Verification
   // ============================================
-  describe('🎓 第一阶段知识检验', () => {
+  describe('🎓 Phase One Knowledge Verification', () => {
 
-    it('验证所有核心概念', () => {
-      // Day 1 概念：Cypress 浏览器内执行
+    it('Verify all core concepts', () => {
+      // Day 1 Concept: Cypress browser-based execution
       cy.visit('https://example.cypress.io')
-      cy.title().should('not.be.empty') // 验证页面加载
+      cy.title().should('not.be.empty') // Verify page loaded
 
-      // Day 2 概念：项目结构和基础测试
+      // Day 2 Concept: Project structure and basic testing
       cy.url().should('include', 'example.cypress.io')
 
-      // Day 3 概念：四个核心命令
+      // Day 3 Concept: Four core commands
       cy.visit('https://example.cypress.io/commands/actions') // cy.visit()
       cy.get('.action-email')                                 // cy.get()
         .click()                                             // .click()
-        .type('mastery@cypress.io')                          // 更多交互
+        .type('mastery@cypress.io')                          // More interaction
         .should('have.value', 'mastery@cypress.io')          // .should()
 
-      // 验证学习成果
+      // Verify learning achievements
       cy.get('.action-email').should('be.focused')
     })
 
-    it('展示最佳实践', () => {
+    it('Demonstrate best practices', () => {
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 最佳实践 1: 清晰的链式调用
+      // Best Practice 1: Clear chaining
       cy.get('.action-email')
-        .should('be.visible')      // 先验证
-        .clear()                   // 清空
-        .type('best@practice.com') // 操作
-        .should('have.value', 'best@practice.com') // 验证结果
+        .should('be.visible')      // Verify first
+        .clear()                   // Clear
+        .type('best@practice.com') // Operate
+        .should('have.value', 'best@practice.com') // Verify result
 
-      // 最佳实践 2: 使用稳定的选择器
+      // Best Practice 2: Use stable selectors
       cy.get('[type="email"]').should('exist')
 
-      // 最佳实践 3: 合理的断言
+      // Best Practice 3: Proper assertions
       cy.get('.action-email').should('be.enabled')
     })
   })
 
   // ============================================
-  // 调试和学习技巧演示
+  // Debugging and Learning Techniques
   // ============================================
-  describe('💡 调试和学习技巧', () => {
+  describe('💡 Debugging and Learning Techniques', () => {
 
-    it('使用 .then() 进行条件判断', () => {
+    it('Use .then() for conditional logic', () => {
       cy.visit('https://example.cypress.io/commands/actions')
 
       cy.get('body').then(($body) => {
-        // 根据页面实际情况执行不同操作
+        // Execute different operations based on actual page conditions
         if ($body.find('.action-email').length > 0) {
           cy.get('.action-email').type('conditional@test.com')
         }
 
-        // 检查是否有可用的textarea（非disabled）
+        // Check if there are available textareas (not disabled)
         if ($body.find('textarea:not([disabled])').length > 0) {
           cy.get('textarea:not([disabled])').type('This is a textarea')
         } else {
-          cy.log('没有找到可用的textarea，跳过操作')
+          cy.log('No available textarea found, skipping operation')
         }
       })
     })
 
-    it('超时和重试演示', () => {
+    it('Timeout and retry demonstration', () => {
       cy.visit('https://example.cypress.io/commands/actions')
 
-      // 自定义超时
+      // Custom timeout
       cy.get('.action-email', { timeout: 10000 })
         .should('be.visible')
 
-      // 验证自动重试机制
+      // Verify automatic retry mechanism
       cy.get('.action-email')
         .type('retry@test.com')
         .should('have.value', 'retry@test.com')
     })
 
-    it('使用 .log() 记录调试信息', () => {
-      cy.log('开始调试测试')
+    it('Use .log() to record debugging information', () => {
+      cy.log('Starting debugging test')
 
       cy.visit('https://example.cypress.io/commands/actions')
-      cy.log('页面加载完成')
+      cy.log('Page loaded')
 
       cy.get('.action-email').then(($input) => {
-        cy.log(`找到输入框，placeholder: ${$input.attr('placeholder')}`)
+        cy.log(`Found input field, placeholder: ${$input.attr('placeholder')}`)
       })
 
-      // 分开链式调用，避免.then()影响后续命令
+      // Separate chain calling to avoid .then() affecting subsequent commands
       cy.get('.action-email').type('debug@test.com')
 
-      cy.log('测试完成')
+      cy.log('Test completed')
     })
   })
 
   // ============================================
-  // 自我检测和学习评估
+  // Self-Assessment and Learning Evaluation
   // ============================================
-  describe('📊 自我检测评估', () => {
+  describe('📊 Self-Assessment Evaluation', () => {
 
-    it('📋 Day 3 学习成果检测', () => {
+    it('📋 Day 3 Learning Achievement Test', () => {
       const skills = {
         advancedVisit: false,
         selectorMastery: false,
@@ -356,58 +356,58 @@ describe('🌱 Day 3: 基本命令深度掌握', () => {
         bestPractices: false
       }
 
-      cy.log('🔍 开始 Day 3 学习成果检测...')
+      cy.log('🔍 Starting Day 3 learning achievement test...')
 
-      // 检测1：高级页面访问
+      // Test 1: Advanced page visit
       cy.visit('https://example.cypress.io/commands/actions')
         .then(() => {
           skills.advancedVisit = true
-          cy.log('✅ 高级页面访问：通过')
+          cy.log('✅ Advanced page visit: Passed')
         })
 
-      // 检测2：选择器精通度
+      // Test 2: Selector mastery
       cy.get('.action-email').should('exist')
         .then(() => {
           skills.selectorMastery = true
-          cy.log('✅ 选择器精通度：通过')
+          cy.log('✅ Selector mastery: Passed')
         })
 
-      // 检测3：复杂交互
+      // Test 3: Complex interactions
       cy.get('.action-email')
         .clear()
         .type('advanced@test.com')
         .should('have.value', 'advanced@test.com')
         .then(() => {
           skills.complexInteractions = true
-          cy.log('✅ 复杂交互：通过')
+          cy.log('✅ Complex interactions: Passed')
         })
 
-      // 检测4：链式断言
+      // Test 4: Chained assertions
       cy.get('h1')
         .should('exist')
         .and('be.visible')
         .and('contain.text', 'Actions')
         .then(() => {
           skills.chainedAssertions = true
-          cy.log('✅ 链式断言：通过')
+          cy.log('✅ Chained assertions: Passed')
         })
 
-      // 检测5：条件处理
+      // Test 5: Conditional handling
       cy.get('body').then(($body) => {
         if ($body.find('.action-email').length > 0) {
           skills.conditionalHandling = true
-          cy.log('✅ 条件处理：通过')
+          cy.log('✅ Conditional handling: Passed')
         }
       })
 
-      // 检测6：调试技巧
-      cy.log('调试信息：正在验证调试技巧')
+      // Test 6: Debugging skills
+      cy.log('Debug info: Verifying debugging skills')
         .then(() => {
           skills.debuggingSkills = true
-          cy.log('✅ 调试技巧：通过')
+          cy.log('✅ Debugging skills: Passed')
         })
 
-      // 检测7：最佳实践
+      // Test 7: Best practices
       cy.get('.action-email')
         .should('be.visible')
         .clear()
@@ -415,71 +415,71 @@ describe('🌱 Day 3: 基本命令深度掌握', () => {
         .should('have.value', 'bestpractice@test.com')
         .then(() => {
           skills.bestPractices = true
-          cy.log('✅ 最佳实践：通过')
+          cy.log('✅ Best practices: Passed')
         })
 
-      // 生成检测报告
+      // Generate test report
       cy.then(() => {
         const passedSkills = Object.values(skills).filter(Boolean).length
         const totalSkills = Object.keys(skills).length
         const passRate = (passedSkills / totalSkills * 100).toFixed(1)
 
         cy.log('')
-        cy.log('📊 Day 3 学习成果报告：')
-        cy.log(`通过技能: ${passedSkills}/${totalSkills}`)
-        cy.log(`通过率: ${passRate}%`)
+        cy.log('📊 Day 3 Learning Achievement Report:')
+        cy.log(`Passed skills: ${passedSkills}/${totalSkills}`)
+        cy.log(`Pass rate: ${passRate}%`)
 
         Object.keys(skills).forEach(skill => {
           const status = skills[skill] ? '✅' : '❌'
           const skillNames = {
-            advancedVisit: '高级页面访问',
-            selectorMastery: '选择器精通',
-            complexInteractions: '复杂交互',
-            chainedAssertions: '链式断言',
-            conditionalHandling: '条件处理',
-            debuggingSkills: '调试技巧',
-            bestPractices: '最佳实践'
+            advancedVisit: 'Advanced Page Visit',
+            selectorMastery: 'Selector Mastery',
+            complexInteractions: 'Complex Interactions',
+            chainedAssertions: 'Chained Assertions',
+            conditionalHandling: 'Conditional Handling',
+            debuggingSkills: 'Debugging Skills',
+            bestPractices: 'Best Practices'
           }
           cy.log(`${status} ${skillNames[skill]}`)
         })
 
         if (passRate >= 90) {
-          cy.log('🏆 卓越！Day 3 学习目标完美达成！')
-          cy.log('🚀 你已经是 Cypress 基础专家了！')
-          cy.log('📚 强烈建议进入 Day 4 核心功能学习')
+          cy.log('🏆 Excellent! Day 3 learning objectives perfectly achieved!')
+          cy.log('🚀 You are now a Cypress fundamentals expert!')
+          cy.log('📚 Highly recommend proceeding to Day 4 core features')
         } else if (passRate >= 80) {
-          cy.log('🎉 优秀！Day 3 学习目标超额达成！')
-          cy.log('📚 可以自信地进入第二阶段学习')
+          cy.log('🎉 Great! Day 3 learning objectives exceeded!')
+          cy.log('📚 You can confidently enter Phase Two learning')
         } else if (passRate >= 70) {
-          cy.log('👍 良好！Day 3 基本目标达成')
-          cy.log('💪 建议加强练习，然后进入 Day 4')
+          cy.log('👍 Good! Day 3 basic objectives achieved')
+          cy.log('💪 Recommend more practice before entering Day 4')
         } else {
-          cy.log('⚠️ 建议重点复习 Day 3 内容')
-          cy.log('🔄 特别关注未通过的技能点')
+          cy.log('⚠️ Recommend focusing on reviewing Day 3 content')
+          cy.log('🔄 Pay special attention to failed skill points')
         }
 
-        expect(passedSkills).to.be.at.least(6) // 至少通过6个技能点
+        expect(passedSkills).to.be.at.least(6) // At least 6 skills passed
       })
     })
 
-    it('📈 第一阶段总体评估', () => {
+    it('📈 Phase One Overall Assessment', () => {
       const phase1Skills = {
-        day1Environment: true,  // Day 1 环境搭建
-        day1BasicSyntax: true,  // Day 1 基础语法
-        day2CoreCommands: true, // Day 2 核心命令
-        day2ChainCalls: true,   // Day 2 链式调用
-        day3SelectorMastery: false, // Day 3 选择器精通
-        day3AdvancedInteractions: false, // Day 3 高级交互
-        day3BestPractices: false // Day 3 最佳实践
+        day1Environment: true,  // Day 1 Environment setup
+        day1BasicSyntax: true,  // Day 1 Basic syntax
+        day2CoreCommands: true, // Day 2 Core commands
+        day2ChainCalls: true,   // Day 2 Chain calls
+        day3SelectorMastery: false, // Day 3 Selector mastery
+        day3AdvancedInteractions: false, // Day 3 Advanced interactions
+        day3BestPractices: false // Day 3 Best practices
       }
 
-      cy.log('🔍 第一阶段 (Day 1-3) 总体技能评估...')
+      cy.log('🔍 Phase One (Day 1-3) overall skill assessment...')
 
-      // 模拟检测 Day 3 核心技能
+      // Simulate Day 3 core skills test
       cy.visit('https://example.cypress.io/commands/actions')
         .then(() => {
           phase1Skills.day3SelectorMastery = true
-          cy.log('✅ Day 3 选择器精通：验证通过')
+          cy.log('✅ Day 3 Selector mastery: Verified')
         })
 
       cy.get('.action-email')
@@ -487,7 +487,7 @@ describe('🌱 Day 3: 基本命令深度掌握', () => {
         .should('have.value', 'phase1@assessment.com')
         .then(() => {
           phase1Skills.day3AdvancedInteractions = true
-          cy.log('✅ Day 3 高级交互：验证通过')
+          cy.log('✅ Day 3 Advanced interactions: Verified')
         })
 
       cy.get('h1')
@@ -496,33 +496,33 @@ describe('🌱 Day 3: 基本命令深度掌握', () => {
         .and('contain.text', 'Actions')
         .then(() => {
           phase1Skills.day3BestPractices = true
-          cy.log('✅ Day 3 最佳实践：验证通过')
+          cy.log('✅ Day 3 Best practices: Verified')
         })
 
-      // 生成第一阶段总评
+      // Generate Phase One overall report
       cy.then(() => {
         const passedPhase1 = Object.values(phase1Skills).filter(Boolean).length
         const totalPhase1 = Object.keys(phase1Skills).length
         const phase1Rate = (passedPhase1 / totalPhase1 * 100).toFixed(1)
 
         cy.log('')
-        cy.log('🏆 第一阶段 (Day 1-3) 总评报告：')
-        cy.log(`掌握技能: ${passedPhase1}/${totalPhase1}`)
-        cy.log(`掌握率: ${phase1Rate}%`)
+        cy.log('🏆 Phase One (Day 1-3) Overall Report:')
+        cy.log(`Mastered skills: ${passedPhase1}/${totalPhase1}`)
+        cy.log(`Mastery rate: ${phase1Rate}%`)
 
         const skillGroups = {
-          'Day 1 - 环境基础': {
-            day1Environment: '环境搭建',
-            day1BasicSyntax: '基础语法'
+          'Day 1 - Environment & Basics': {
+            day1Environment: 'Environment Setup',
+            day1BasicSyntax: 'Basic Syntax'
           },
-          'Day 2 - 核心命令': {
-            day2CoreCommands: '核心命令',
-            day2ChainCalls: '链式调用'
+          'Day 2 - Core Commands': {
+            day2CoreCommands: 'Core Commands',
+            day2ChainCalls: 'Chain Calls'
           },
-          'Day 3 - 深度掌握': {
-            day3SelectorMastery: '选择器精通',
-            day3AdvancedInteractions: '高级交互',
-            day3BestPractices: '最佳实践'
+          'Day 3 - Deep Mastery': {
+            day3SelectorMastery: 'Selector Mastery',
+            day3AdvancedInteractions: 'Advanced Interactions',
+            day3BestPractices: 'Best Practices'
           }
         }
 
@@ -536,92 +536,93 @@ describe('🌱 Day 3: 基本命令深度掌握', () => {
 
         if (phase1Rate >= 85) {
           cy.log('')
-          cy.log('🎉 恭喜！第一阶段学习圆满完成！')
-          cy.log('🏅 你已经完全掌握了 Cypress 基础知识')
-          cy.log('🚀 准备进入第二阶段 - 核心功能学习')
+          cy.log('🎉 Congratulations! Phase One learning completed successfully!')
+          cy.log('🏅 You have fully mastered Cypress fundamentals')
+          cy.log('🚀 Ready to enter Phase Two - Core Features Learning')
           cy.log('')
-          cy.log('🎯 下一步学习计划：')
-          cy.log('📖 Day 4: 选择器和交互进阶')
-          cy.log('📖 Day 5: 遍历和过滤技巧')
-          cy.log('📖 Day 6: 常用交互命令')
-          cy.log('📖 Day 7: 断言系统深入')
-          cy.log('📖 Day 8: Hooks 和测试组织')
+          cy.log('🎯 Next Learning Plan:')
+          cy.log('📖 Day 4: Advanced Selectors and Interactions')
+          cy.log('📖 Day 5: Traversal and Filtering Techniques')
+          cy.log('📖 Day 6: Common Interaction Commands')
+          cy.log('📖 Day 7: In-Depth Assertion System')
+          cy.log('📖 Day 8: Hooks and Test Organization')
         } else if (phase1Rate >= 75) {
           cy.log('')
-          cy.log('👍 第一阶段学习基本完成！')
-          cy.log('💪 建议加强练习后进入第二阶段')
+          cy.log('👍 Phase One learning basically completed!')
+          cy.log('💪 Recommend more practice before entering Phase Two')
         } else {
           cy.log('')
-          cy.log('⚠️ 建议继续巩固第一阶段基础知识')
-          cy.log('🔄 重点复习未掌握的技能点')
+          cy.log('⚠️ Recommend continuing to consolidate Phase One fundamentals')
+          cy.log('🔄 Focus on reviewing unmastered skill points')
         }
 
-        expect(passedPhase1).to.be.at.least(6) // 第一阶段至少掌握6项技能
+        expect(passedPhase1).to.be.at.least(6) // At least 6 skills mastered in Phase One
       })
     })
 
-    it('📝 学习建议和资源推荐', () => {
+    it('📝 Learning suggestions and resource recommendations', () => {
       cy.then(() => {
-        cy.log('💡 Day 3 学习建议总结：')
+        cy.log('💡 Day 3 Learning Suggestions Summary:')
         cy.log('')
-        cy.log('🎯 核心技能强化：')
-        cy.log('1. 📍 选择器策略 - 优先使用 [data-cy] > #id > .class')
-        cy.log('2. 🔗 链式调用 - 合理组织，避免过度复杂')
-        cy.log('3. 🛡️ 条件处理 - 使用 .then() 进行条件判断')
-        cy.log('4. 🐛 调试技巧 - 善用 cy.log() 和 Time Travel')
+        cy.log('🎯 Core Skills Enhancement:')
+        cy.log('1. 📍 Selector Strategy - Prioritize [data-cy] > #id > .class')
+        cy.log('2. 🔗 Chain Calling - Organize properly, avoid over-complexity')
+        cy.log('3. 🛡️ Conditional Handling - Use .then() for conditional logic')
+        cy.log('4. 🐛 Debugging Techniques - Make good use of cy.log() and Time Travel')
         cy.log('')
-        cy.log('📚 推荐练习：')
-        cy.log('1. 🌐 在不同网站练习相同技能')
-        cy.log('2. 🔄 重复运行测试，观察 Cypress 行为')
-        cy.log('3. 🛠️ 尝试修改测试代码，理解每个部分作用')
-        cy.log('4. 📝 记录遇到的问题和解决方案')
+        cy.log('📚 Recommended Practice:')
+        cy.log('1. 🌐 Practice same skills on different websites')
+        cy.log('2. 🔄 Run tests repeatedly, observe Cypress behavior')
+        cy.log('3. 🛠️ Try modifying test code, understand each part\'s role')
+        cy.log('4. 📝 Record problems encountered and solutions')
         cy.log('')
-        cy.log('🔗 有用资源：')
-        cy.log('📖 Cypress 官方文档: https://docs.cypress.io')
-        cy.log('🎥 Cypress 官方示例: https://example.cypress.io')
-        cy.log('💬 社区支持: https://github.com/cypress-io/cypress')
+        cy.log('🔗 Useful Resources:')
+        cy.log('📖 Cypress Official Docs: https://docs.cypress.io')
+        cy.log('🎥 Cypress Official Examples: https://example.cypress.io')
+        cy.log('💬 Community Support: https://github.com/cypress-io/cypress')
         cy.log('')
-        cy.log('🎉 恭喜完成第一阶段！准备迎接更多挑战！')
+        cy.log('🎉 Congratulations on completing Phase One! Ready for more challenges!')
       })
     })
   })
 })
 
 /**
- * 🌟 Day 3 核心学习要点总结：
+ * 🌟 Day 3 Core Learning Points Summary:
  *
- * 1. **选择器策略精通**
- *    - 选择器优先级：[data-cy] > #id > .class > tag
- *    - 合理使用不同类型选择器
- *    - 避免脆弱的选择器策略
+ * 1. **Selector Strategy Mastery**
+ *    - Selector priority: [data-cy] > #id > .class > tag
+ *    - Proper use of different selector types
+ *    - Avoid fragile selector strategies
  *
- * 2. **高级交互技巧**
- *    - 复杂的点击操作
- *    - 表单处理最佳实践
- *    - 条件性元素处理
+ * 2. **Advanced Interaction Techniques**
+ *    - Complex click operations
+ *    - Form handling best practices
+ *    - Conditional element handling
  *
- * 3. **链式断言掌握**
- *    - .should() 和 .and() 的组合使用
- *    - 多重验证策略
- *    - 断言失败的调试技巧
+ * 3. **Chained Assertion Mastery**
+ *    - Combined use of .should() and .and()
+ *    - Multiple verification strategies
+ *    - Debugging techniques for assertion failures
  *
- * 4. **调试和最佳实践**
- *    - cy.log() 的有效使用
- *    - Time Travel 调试技巧
- *    - 条件性操作处理
- *    - 自定义超时配置
+ * 4. **Debugging and Best Practices**
+ *    - Effective use of cy.log()
+ *    - Time Travel debugging techniques
+ *    - Conditional operation handling
+ *    - Custom timeout configuration
  *
- * 💡 **关键概念巩固**：
- * - Cypress 的自动等待和重试机制
- * - 命令链的正确组织方式
- * - 错误处理和条件判断
- * - 测试的可读性和可维护性
+ * 💡 **Key Concepts Consolidation**:
+ * - Cypress automatic waiting and retry mechanism
+ * - Proper organization of command chains
+ * - Error handling and conditional logic
+ * - Test readability and maintainability
  *
- * 🎯 **第一阶段完成标志**：
- * 能够独立编写包含页面导航、元素交互、
- * 条件判断和结果验证的完整测试用例
+ * 🎯 **Phase One Completion Criteria**:
+ * Ability to independently write complete test cases including
+ * page navigation, element interaction, conditional logic,
+ * and result verification
  *
- * 🚀 **准备进入第二阶段**：
- * 核心功能深入学习，包括高级选择器、
- * 表单处理、遍历技巧和测试组织
+ * 🚀 **Preparing for Phase Two**:
+ * In-depth learning of core features including advanced selectors,
+ * form handling, traversal techniques, and test organization
  */

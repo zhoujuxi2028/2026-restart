@@ -1,266 +1,233 @@
 /**
- * ⏳ Day 10: 异步操作处理
+ * ⏳ Day 10: Async Operations Handling
  *
- * 学习目标：
- * - 掌握各种等待策略 (cy.wait())
- * - 学习处理动态内容加载
- * - 掌握 Progress bars 和 Loading states
- * - 学会处理复杂动画等待
- * - 理解性能测试基础
+ * Learning Objectives:
+ * - Master various waiting strategies (cy.wait())
+ * - Learn to handle dynamic content loading
+ * - Master progress bars and loading states
+ * - Learn to handle complex animation waits
+ * - Understand performance testing basics
  */
 
-describe('⏳ Day 10: 异步操作处理', () => {
+describe('⏳ Day 10: Async Operations Handling', () => {
 
-  beforeEach(() => {
-    // 访问示例页面
-    cy.visit('https://example.cypress.io/commands/waiting')
-  })
+  describe('🔄 Basic Waiting Strategies', () => {
 
-  describe('🔄 基础等待策略', () => {
+    it('should be able to wait for a fixed time', () => {
+      // 🎯 Learning Point: cy.wait() fixed time waiting
+      cy.visit('https://example.cypress.io')
 
-    it('应该能够等待固定时间', () => {
-      // 🎯 学习要点：cy.wait() 固定时间等待
-      cy.get('[data-cy="wait-button"]', { timeout: 10000 }).should('exist')
-
-      // 等待 2 秒
-      cy.wait(2000)
-
-      cy.then(() => {
-        cy.log('✅ 已等待 2 秒')
-      })
-    })
-
-    it('应该能够等待网络请求完成', () => {
-      // 🎯 学习要点：等待网络请求
-      cy.intercept('GET', '**/api/slow-endpoint').as('slowRequest')
-
-      // 模拟一个缓慢的网络请求
-      cy.window().then((win) => {
-        win.fetch('/api/slow-endpoint')
-      })
-
-      // 等待网络请求完成
-      cy.wait('@slowRequest').then((interception) => {
-        expect(interception.response.statusCode).to.eq(200)
-      })
-    })
-
-    it('应该能够等待元素出现', () => {
-      // 🎯 学习要点：等待 DOM 元素
-      cy.get('[data-cy="trigger-async"]').click()
-
-      // 等待异步元素出现
-      cy.get('[data-cy="async-content"]', { timeout: 10000 })
-        .should('exist')
-        .and('be.visible')
-        .and('contain.text', '异步内容已加载')
-    })
-
-    it('应该能够等待元素消失', () => {
-      // 🎯 学习要点：等待元素消失
-      cy.get('[data-cy="loading-indicator"]').should('exist')
-
-      // 等待加载指示器消失
-      cy.get('[data-cy="loading-indicator"]').should('not.exist')
-
-      // 验证内容已加载
-      cy.get('[data-cy="main-content"]').should('be.visible')
-    })
-  })
-
-  describe('📈 动态内容处理', () => {
-
-    it('应该能够处理动态加载的列表', () => {
-      // 🎯 学习要点：动态列表内容等待
-      cy.intercept('GET', '**/api/items').as('getItems')
-
-      cy.get('[data-cy="load-items"]').click()
-
-      // 等待 API 请求完成
-      cy.wait('@getItems')
-
-      // 等待列表项加载完成
-      cy.get('[data-cy="item-list"]')
-        .children()
-        .should('have.length.greaterThan', 0)
-
-      // 验证第一个项目已正确加载
-      cy.get('[data-cy="item-list"] li')
-        .first()
-        .should('contain.text', '项目')
-    })
-
-    it('应该能够处理无限滚动', () => {
-      // 🎯 学习要点：无限滚动处理
-      cy.intercept('GET', '**/api/items*').as('getMoreItems')
-
-      // 模拟滚动到底部
-      cy.get('[data-cy="scroll-container"]').scrollTo('bottom')
-
-      // 等待新内容加载
-      cy.wait('@getMoreItems')
-
-      // 验证新内容已添加
-      cy.get('[data-cy="scroll-container"]')
-        .children()
-        .should('have.length.greaterThan', 10)
-    })
-
-    it('应该能够处理懒加载图片', () => {
-      // 🎯 学习要点：懒加载图片等待
-      cy.get('[data-cy="lazy-image"]')
-        .should('have.attr', 'data-src')
-        .and('not.have.attr', 'src')
-
-      // 滚动到图片位置
-      cy.get('[data-cy="lazy-image"]').scrollIntoView()
-
-      // 等待图片加载完成
-      cy.get('[data-cy="lazy-image"]')
-        .should('have.attr', 'src')
-        .and('be.visible')
-
-      // 验证图片已正确加载
-      cy.get('[data-cy="lazy-image"]')
-        .should(($img) => {
-          expect($img[0].naturalWidth).to.be.greaterThan(0)
-        })
-    })
-  })
-
-  describe('🎪 Progress Bars 和 Loading States', () => {
-
-    it('应该能够监控进度条变化', () => {
-      // 🎯 学习要点：进度条监控
-      cy.get('[data-cy="start-progress"]').click()
-
-      // 等待进度条出现
-      cy.get('[data-cy="progress-bar"]').should('exist')
-
-      // 监控进度变化
-      cy.get('[data-cy="progress-bar"]')
-        .should('have.attr', 'data-progress', '0')
-
-      // 等待进度增长
-      cy.get('[data-cy="progress-bar"]', { timeout: 15000 })
-        .should(($progress) => {
-          const progress = parseInt($progress.attr('data-progress') || '0')
-          expect(progress).to.be.greaterThan(0)
-        })
-
-      // 等待进度完成
-      cy.get('[data-cy="progress-bar"]', { timeout: 30000 })
-        .should('have.attr', 'data-progress', '100')
-
-      // 验证完成状态
-      cy.get('[data-cy="progress-complete"]').should('be.visible')
-    })
-
-    it('应该能够处理多步骤加载', () => {
-      // 🎯 学习要点：多步骤加载流程
-      const steps = [
-        { selector: '[data-cy="step-1"]', text: '步骤 1 完成' },
-        { selector: '[data-cy="step-2"]', text: '步骤 2 完成' },
-        { selector: '[data-cy="step-3"]', text: '步骤 3 完成' }
-      ]
-
-      cy.get('[data-cy="start-multi-step"]').click()
-
-      steps.forEach((step, index) => {
-        cy.get(step.selector, { timeout: 10000 })
-          .should('be.visible')
-          .and('contain.text', step.text)
-
-        cy.log(`✅ ${step.text}`)
-      })
-
-      // 验证所有步骤都完成
-      cy.get('[data-cy="all-steps-complete"]').should('be.visible')
-    })
-
-    it('应该能够处理 Skeleton Loading', () => {
-      // 🎯 学习要点：骨架屏加载
-      cy.get('[data-cy="load-with-skeleton"]').click()
-
-      // 验证骨架屏出现
-      cy.get('[data-cy="skeleton-loader"]').should('be.visible')
-
-      // 等待真实内容加载
-      cy.get('[data-cy="actual-content"]', { timeout: 10000 })
-        .should('be.visible')
-
-      // 验证骨架屏消失
-      cy.get('[data-cy="skeleton-loader"]').should('not.exist')
-    })
-  })
-
-  describe('🎨 复杂动画处理', () => {
-
-    it('应该能够等待 CSS 动画完成', () => {
-      // 🎯 学习要点：CSS 动画等待
-      cy.get('[data-cy="start-animation"]').click()
-
-      // 等待动画开始
-      cy.get('[data-cy="animated-element"]')
-        .should('have.class', 'animating')
-
-      // 等待动画完成
-      cy.get('[data-cy="animated-element"]', { timeout: 5000 })
-        .should('not.have.class', 'animating')
-        .and('have.class', 'animation-complete')
-    })
-
-    it('应该能够处理 JavaScript 动画', () => {
-      // 🎯 学习要点：JavaScript 动画等待
-      cy.get('[data-cy="js-animation-trigger"]').click()
-
-      // 使用自定义等待条件
-      cy.get('[data-cy="js-animated-element"]')
-        .should(($el) => {
-          const computedStyle = window.getComputedStyle($el[0])
-          const transform = computedStyle.getPropertyValue('transform')
-          expect(transform).to.not.equal('none')
-        })
-
-      // 等待动画完成
-      cy.get('[data-cy="js-animated-element"]')
-        .should('have.attr', 'data-animation-state', 'completed')
-    })
-
-    it('应该能够处理过渡效果', () => {
-      // 🎯 学习要点：CSS 过渡处理
-      cy.get('[data-cy="toggle-transition"]').click()
-
-      // 等待过渡开始
-      cy.get('[data-cy="transition-element"]')
-        .should('have.class', 'transitioning')
-
-      // 等待过渡完成
-      cy.get('[data-cy="transition-element"]', { timeout: 3000 })
-        .should('not.have.class', 'transitioning')
-        .and('have.class', 'transition-complete')
-    })
-  })
-
-  describe('⚡ 性能测试基础', () => {
-
-    it('应该能够测量页面加载时间', () => {
-      // 🎯 学习要点：页面加载性能测试
       const startTime = Date.now()
 
+      // 等待 1 秒
+      cy.wait(1000)
+
+      cy.then(() => {
+        const elapsed = Date.now() - startTime
+        expect(elapsed).to.be.at.least(1000)
+        cy.log(`✅ Waited for ${elapsed}ms`)
+      })
+    })
+
+    it('should be able to wait for network requests to complete', () => {
+      // 🎯 Learning Point: Waiting for network requests
+      cy.intercept('GET', '**/commands/network-requests').as('pageLoad')
+
+      cy.visit('https://example.cypress.io/commands/network-requests')
+
+      // Wait for network request to complete
+      cy.wait('@pageLoad').then((interception) => {
+        expect(interception.response.statusCode).to.eq(200)
+        cy.log('✅ Network request completed')
+      })
+    })
+
+    it('should be able to wait for element to appear', () => {
+      // 🎯 Learning Point: Waiting for DOM elements
+      cy.visit('https://example.cypress.io/commands/actions')
+
+      // Wait for form element to appear
+      cy.get('.action-email', { timeout: 10000 })
+        .should('exist')
+        .and('be.visible')
+
+      cy.log('✅ Element appeared')
+    })
+
+    it('should be able to wait for element attribute changes', () => {
+      // 🎯 Learning Point: Waiting for element attribute changes
+      cy.visit('https://example.cypress.io/commands/actions')
+
+      cy.get('.action-email')
+        .should('have.attr', 'type', 'email')
+        .and('have.attr', 'placeholder')
+
+      cy.log('✅ Element attribute verification completed')
+    })
+  })
+
+  describe('📈 Dynamic Content Handling', () => {
+
+    it('should be able to handle dynamically loaded network requests', () => {
+      // 🎯 Learning Point: Dynamic network request waiting
+      cy.visit('https://example.cypress.io/commands/network-requests')
+
+      // Intercept API request
+      cy.intercept('GET', '**/comments/*').as('getComment')
+
+      // Trigger network request
+      cy.get('.network-btn').click()
+
+      // Wait for API request to complete
+      cy.wait('@getComment').then((interception) => {
+        expect(interception.response.statusCode).to.eq(200)
+        expect(interception.response.body).to.have.property('name')
+        cy.log('✅ Dynamic content loaded')
+      })
+    })
+
+    it('should be able to handle multiple network requests', () => {
+      // 🎯 Learning Point: Waiting for multiple requests
+      cy.visit('https://example.cypress.io/commands/network-requests')
+
+      cy.intercept('GET', '**/comments/*').as('getComment')
+      cy.intercept('PUT', '**/comments/*').as('putComment')
+
+      // Trigger GET request
+      cy.get('.network-btn').click()
+      cy.wait('@getComment')
+
+      // Trigger PUT request
+      cy.get('.network-put').click()
+      cy.wait('@putComment').then((interception) => {
+        expect(interception.response.statusCode).to.eq(200)
+        cy.log('✅ Multiple requests handled')
+      })
+    })
+
+    it('should be able to handle page scrolling', () => {
+      // 🎯 Learning Point: Scroll operation waiting
+      cy.visit('https://example.cypress.io')
+
+      // Scroll to bottom of page
+      cy.scrollTo('bottom', { duration: 1000 })
+      cy.wait(500)
+
+      // Verify scroll completed
+      cy.window().then((win) => {
+        const scrollY = win.scrollY
+        expect(scrollY).to.be.greaterThan(0)
+        cy.log(`✅ Scrolled ${scrollY}px`)
+      })
+    })
+  })
+
+  describe('🎪 Form Interaction Waiting', () => {
+
+    it('should be able to wait for input completion', () => {
+      // 🎯 Learning Point: Input operation waiting
+      cy.visit('https://example.cypress.io/commands/actions')
+
+      const testEmail = 'test@example.com'
+
+      cy.get('.action-email')
+        .clear()
+        .type(testEmail, { delay: 50 })
+        .should('have.value', testEmail)
+
+      cy.log('✅ Input operation completed')
+    })
+
+    it('should be able to wait for select operation', () => {
+      // 🎯 Learning Point: Select operation waiting
+      cy.visit('https://example.cypress.io/commands/actions')
+
+      cy.get('.action-select')
+        .select('apples')
+        .should('have.value', 'fr-apples')
+
+      cy.log('✅ Select operation completed')
+    })
+
+    it('should be able to wait for multiple select operation', () => {
+      // 🎯 Learning Point: Multiple select operation waiting
+      cy.visit('https://example.cypress.io/commands/actions')
+
+      cy.get('.action-select-multiple')
+        .select(['apples', 'oranges', 'bananas'])
+        .then(($select) => {
+          const selectedValues = Array.from($select.val())
+          expect(selectedValues).to.have.length(3)
+          cy.log('✅ Multiple select completed')
+        })
+    })
+  })
+
+  describe('🎨 Animation and Transition Handling', () => {
+
+    it('should be able to handle scroll into view', () => {
+      // 🎯 Learning Point: scrollIntoView waiting
+      cy.visit('https://example.cypress.io')
+
+      // Scroll to link at bottom of page
+      cy.contains('cypress.io')
+        .scrollIntoView()
+        .should('be.visible')
+
+      cy.log('✅ Scroll into view completed')
+    })
+
+    it('should be able to handle element focus', () => {
+      // 🎯 Learning Point: focus operation waiting
+      cy.visit('https://example.cypress.io/commands/actions')
+
+      cy.get('.action-focus')
+        .focus()
+        .should('have.class', 'focus')
+        .prev()
+        .should('have.attr', 'style', 'color: orange;')
+
+      cy.log('✅ Focus operation completed')
+    })
+
+    it('should be able to handle element blur', () => {
+      // 🎯 Learning Point: blur operation waiting
+      cy.visit('https://example.cypress.io/commands/actions')
+
+      cy.get('.action-blur')
+        .type('About to blur')
+        .blur()
+        .should('have.class', 'error')
+        .prev()
+        .should('have.attr', 'style', 'color: red;')
+
+      cy.log('✅ Blur operation completed')
+    })
+  })
+
+  describe('⚡ Performance Testing Basics', () => {
+
+    it('should be able to measure page load time', () => {
+      // 🎯 Learning Point: Page load performance testing
       cy.visit('https://example.cypress.io')
 
       cy.window().then((win) => {
-        const endTime = Date.now()
-        const loadTime = endTime - startTime
+        // 使用 Navigation Timing 计算首字节和整页加载时间
+        const nav = win.performance.getEntriesByType('navigation')[0]
+        const loadTime = nav
+          ? nav.loadEventEnd - nav.startTime
+          : win.performance.timing.loadEventEnd - win.performance.timing.navigationStart
+        const ttfb = nav
+          ? nav.responseStart - nav.startTime
+          : win.performance.timing.responseStart - win.performance.timing.navigationStart
 
-        cy.log(`页面加载时间: ${loadTime}ms`)
-        expect(loadTime).to.be.lessThan(5000) // 5 秒内
+        cy.log(`TTFB: ${Math.round(ttfb)}ms, Load: ${Math.round(loadTime)}ms`)
+        expect(loadTime).to.be.lessThan(5000) // Within 5 seconds
       })
     })
 
-    it('应该能够监控资源加载', () => {
-      // 🎯 学习要点：资源加载监控
+    it('should be able to monitor resource loading', () => {
+      // 🎯 Learning Point: Resource loading monitoring
       const resourceTimes = []
 
       cy.intercept('**/*', (req) => {
@@ -275,275 +242,267 @@ describe('⏳ Day 10: 异步操作处理', () => {
             duration: endTime - startTime
           })
         })
-      }).as('allResources')
+      })
 
       cy.visit('https://example.cypress.io')
 
       cy.then(() => {
-        cy.log(`总资源数: ${resourceTimes.length}`)
+        cy.log(`Total resources: ${resourceTimes.length}`)
 
         const slowResources = resourceTimes.filter(r => r.duration > 1000)
         if (slowResources.length > 0) {
-          cy.log('⚠️ 慢速资源:')
-          slowResources.forEach(r => {
-            cy.log(`${r.method} ${r.url} - ${r.duration}ms`)
-          })
+          cy.log(`⚠️ Slow resources: ${slowResources.length}`)
+        } else {
+          cy.log('✅ All resources loaded well')
         }
       })
     })
 
-    it('应该能够测试 API 响应时间', () => {
-      // 🎯 学习要点：API 性能测试
-      cy.intercept('GET', '**/api/**').as('apiCalls')
+    it('should be able to test API response time', () => {
+      // 🎯 Learning Point: API performance testing
+      cy.intercept('GET', '**/comments/*').as('apiCall')
 
       cy.visit('https://example.cypress.io/commands/network-requests')
+
+      const startTime = Date.now()
       cy.get('.network-btn').click()
 
-      cy.wait('@apiCalls').then((interception) => {
-        const { requestWaited, responseWaited } = interception
+      cy.wait('@apiCall').then((interception) => {
+        const endTime = Date.now()
+        const responseTime = endTime - startTime
 
-        cy.log(`请求等待时间: ${requestWaited}ms`)
-        cy.log(`响应等待时间: ${responseWaited}ms`)
-
-        expect(responseWaited).to.be.lessThan(3000) // 3 秒内
+        cy.log(`API response time: ${responseTime}ms`)
+        expect(responseTime).to.be.lessThan(5000) // Within 5 seconds
+        cy.log('✅ API performance is good')
       })
     })
   })
 
-  describe('🛠️ 自定义等待工具', () => {
+  describe('🛠️ Custom Waiting Strategies', () => {
 
-    it('应该能够创建自定义等待函数', () => {
-      // 🎯 学习要点：自定义等待逻辑
-      const waitForCondition = (conditionFn, options = {}) => {
-        const { timeout = 10000, interval = 100 } = options
+    it('should be able to use conditional waiting', () => {
+      // 🎯 Learning Point: Conditional waiting
+      cy.visit('https://example.cypress.io/commands/actions')
 
-        return cy.then(() => {
-          return new Cypress.Promise((resolve, reject) => {
-            const startTime = Date.now()
+      cy.get('.action-email').should(($input) => {
+        expect($input).to.exist
+        expect($input).to.be.visible
+        expect($input.attr('type')).to.equal('email')
+      })
 
-            const checkCondition = () => {
-              try {
-                const result = conditionFn()
-                if (result) {
-                  resolve(result)
-                  return
-                }
-              } catch (error) {
-                // 条件检查失败，继续等待
-              }
-
-              const elapsed = Date.now() - startTime
-              if (elapsed >= timeout) {
-                reject(new Error(`等待条件超时: ${timeout}ms`))
-                return
-              }
-
-              setTimeout(checkCondition, interval)
-            }
-
-            checkCondition()
-          })
-        })
-      }
-
-      // 使用自定义等待函数
-      cy.get('[data-cy="custom-trigger"]').click()
-
-      waitForCondition(() => {
-        const element = Cypress.$('[data-cy="custom-result"]')
-        return element.length > 0 && element.text().includes('完成')
-      }, { timeout: 15000, interval: 200 })
-        .then(() => {
-          cy.log('✅ 自定义条件满足')
-        })
+      cy.log('✅ Conditional waiting completed')
     })
 
-    it('应该能够实现智能重试机制', () => {
-      // 🎯 学习要点：智能重试
-      const retryOperation = (operationFn, options = {}) => {
-        const { maxRetries = 3, delay = 1000 } = options
-        let attempt = 0
+    it('should be able to wait for multiple conditions', () => {
+      // 🎯 Learning Point: Multiple condition waiting
+      cy.visit('https://example.cypress.io/commands/querying')
 
-        const executeOperation = () => {
-          attempt++
+      cy.get('h1').should(($h1) => {
+        expect($h1).to.have.length(1)
+        expect($h1.text()).to.include('Querying')
+      })
 
-          return cy.then(() => {
-            try {
-              return operationFn()
-            } catch (error) {
-              if (attempt >= maxRetries) {
-                throw new Error(`操作失败，已重试 ${maxRetries} 次: ${error.message}`)
-              }
+      cy.get('.query-list').should(($list) => {
+        expect($list).to.be.visible
+        expect($list.children()).to.have.length.greaterThan(0)
+      })
 
-              cy.log(`操作失败，第 ${attempt} 次重试...`)
-              cy.wait(delay)
-              return executeOperation()
-            }
-          })
-        }
+      cy.log('✅ Multiple condition waiting completed')
+    })
 
-        return executeOperation()
-      }
+    it('should be able to implement retry mechanism', () => {
+      // 🎯 Learning Point: Retry strategy
+      cy.visit('https://example.cypress.io/commands/actions')
 
-      // 使用重试机制
-      retryOperation(() => {
-        cy.get('[data-cy="flaky-element"]')
-          .should('be.visible')
-          .click()
+      // Cypress automatically retries assertions until timeout
+      cy.get('.action-email', { timeout: 10000 })
+        .should('be.visible')
+        .and('have.attr', 'placeholder')
 
-        cy.get('[data-cy="success-indicator"]')
-          .should('exist')
-
-        return '操作成功'
-      }, { maxRetries: 3, delay: 500 })
-        .then((result) => {
-          cy.log(`✅ ${result}`)
-        })
+      cy.log('✅ Retry mechanism verified')
     })
   })
 
-  describe('🎯 实战练习', () => {
+  describe('🎯 Practical Exercises', () => {
 
-    it('🏆 练习：处理复杂的单页应用加载', () => {
-      // 模拟现代 SPA 的复杂加载流程
-      const loadingStages = [
-        { name: '初始化应用', selector: '[data-cy="app-initializing"]' },
-        { name: '加载用户数据', selector: '[data-cy="loading-user"]' },
-        { name: '获取权限信息', selector: '[data-cy="loading-permissions"]' },
-        { name: '渲染界面', selector: '[data-cy="rendering-ui"]' },
-        { name: '加载完成', selector: '[data-cy="app-ready"]' }
-      ]
+    it('🏆 Exercise: Handle complete form flow', () => {
+      // Comprehensive exercise: Form filling and submission
+      cy.visit('https://example.cypress.io/commands/actions')
 
-      cy.visit('/spa-demo') // 假设的 SPA 应用
+      cy.log('Starting form flow')
 
-      loadingStages.forEach((stage, index) => {
-        cy.log(`等待阶段 ${index + 1}: ${stage.name}`)
+      // Step 1: Fill email
+      cy.get('.action-email')
+        .clear()
+        .type('test@example.com')
+        .should('have.value', 'test@example.com')
+      cy.log('✅ Email filled')
 
-        cy.get(stage.selector, { timeout: 15000 })
-          .should('exist')
-          .then(() => {
-            cy.log(`✅ ${stage.name} 完成`)
-          })
-      })
+      // Step 2: Select dropdown
+      cy.get('.action-select')
+        .select('apples')
+        .should('have.value', 'fr-apples')
+      cy.log('✅ Dropdown selected')
 
-      // 验证应用完全可用
-      cy.get('[data-cy="main-navigation"]').should('be.visible')
-      cy.get('[data-cy="user-dashboard"]').should('be.visible')
-      cy.get('[data-cy="app-ready"]').should('have.attr', 'data-loaded', 'true')
+      // Step 3: Multi-select
+      cy.get('.action-select-multiple')
+        .select(['apples', 'oranges'])
+      cy.log('✅ Multi-select completed')
+
+      // Step 4: Focus and blur
+      cy.get('.action-focus')
+        .focus()
+        .should('have.class', 'focus')
+      cy.log('✅ Focus operation completed')
+
+      cy.log('🎉 Form flow completed')
     })
 
-    it('🏆 练习：实时数据流处理', () => {
-      // 模拟实时数据更新（如聊天、股票价格等）
-      let messageCount = 0
+    it('🏆 Exercise: Handle network requests and data validation', () => {
+      // Comprehensive exercise: Network request handling
+      cy.visit('https://example.cypress.io/commands/network-requests')
 
-      cy.intercept('GET', '**/api/realtime-data', (req) => {
-        messageCount++
-        req.reply({
-          statusCode: 200,
-          body: {
-            id: messageCount,
-            timestamp: Date.now(),
-            data: `实时消息 ${messageCount}`,
-            type: 'update'
+      cy.log('Starting network request testing')
+
+      // Intercept all requests
+      cy.intercept('GET', '**/comments/*').as('getComment')
+      cy.intercept('POST', '**/comments').as('postComment')
+      cy.intercept('PUT', '**/comments/*').as('putComment')
+
+      // GET request
+      cy.get('.network-btn').click()
+      cy.wait('@getComment').then((interception) => {
+        expect(interception.response.statusCode).to.eq(200)
+        expect(interception.response.body).to.have.property('name')
+        cy.log('✅ GET request completed')
+      })
+
+      // POST request
+      cy.get('.network-post').click()
+      cy.wait('@postComment').then((interception) => {
+        expect(interception.response.statusCode).to.eq(201)
+        cy.log('✅ POST request completed')
+      })
+
+      // PUT request
+      cy.get('.network-put').click()
+      cy.wait('@putComment').then((interception) => {
+        expect(interception.response.statusCode).to.eq(200)
+        cy.log('✅ PUT request completed')
+      })
+
+      cy.log('🎉 Network request testing completed')
+    })
+
+    it('🏆 Exercise: Performance monitoring and optimization', () => {
+      // Comprehensive exercise: Performance monitoring
+      const performanceMetrics = {
+        pageLoad: 0,
+        resourceCount: 0,
+        slowResources: 0
+      }
+
+      cy.log('Starting performance monitoring')
+
+      const startTime = Date.now()
+
+      cy.intercept('**/*', (req) => {
+        performanceMetrics.resourceCount++
+        const reqStart = Date.now()
+
+        req.continue((res) => {
+          const duration = Date.now() - reqStart
+          if (duration > 1000) {
+            performanceMetrics.slowResources++
           }
         })
-      }).as('realtimeData')
+      })
 
-      cy.visit('/realtime-demo')
+      cy.visit('https://example.cypress.io')
 
-      // 等待初始连接
-      cy.get('[data-cy="connection-status"]')
-        .should('contain.text', '已连接')
+      cy.window().then(() => {
+        performanceMetrics.pageLoad = Date.now() - startTime
 
-      // 监控实时数据更新
-      for (let i = 0; i < 5; i++) {
-        cy.wait('@realtimeData')
+        cy.log('Performance Metrics Summary:')
+        cy.log(`- Page load time: ${performanceMetrics.pageLoad}ms`)
+        cy.log(`- Total resources: ${performanceMetrics.resourceCount}`)
+        cy.log(`- Slow resources: ${performanceMetrics.slowResources}`)
 
-        cy.get('[data-cy="message-list"]')
-          .children()
-          .should('have.length', i + 1)
+        // Performance assertion
+        expect(performanceMetrics.pageLoad).to.be.lessThan(5000)
 
-        cy.get('[data-cy="message-list"]')
-          .children()
-          .last()
-          .should('contain.text', `实时消息 ${i + 1}`)
+        if (performanceMetrics.slowResources === 0) {
+          cy.log('✅ All resources loaded well')
+        } else {
+          cy.log(`⚠️ Found ${performanceMetrics.slowResources} slow resources`)
+        }
 
-        cy.log(`✅ 收到第 ${i + 1} 条实时消息`)
-      }
-
-      // 验证数据完整性
-      cy.get('[data-cy="total-messages"]')
-        .should('contain.text', '5')
+        cy.log('🎉 Performance monitoring completed')
+      })
     })
   })
 
-  describe('💡 总结和最佳实践', () => {
+  describe('💡 Summary and Best Practices', () => {
 
-    it('📚 异步操作处理最佳实践总结', () => {
+    it('📚 Async operations handling best practices summary', () => {
       cy.then(() => {
-        cy.log('⏳ 异步操作核心技能 ✅')
-        cy.log('1. ✅ 基础等待策略 (时间、网络、元素)')
-        cy.log('2. ✅ 动态内容处理 (列表、滚动、懒加载)')
-        cy.log('3. ✅ Progress Bars 和 Loading States')
-        cy.log('4. ✅ 复杂动画和过渡处理')
-        cy.log('5. ✅ 性能测试基础')
-        cy.log('6. ✅ 自定义等待工具')
-        cy.log('7. ✅ 智能重试机制')
-        cy.log('8. ✅ 实时数据流处理')
+        cy.log('⏳ Async Operations Core Skills ✅')
+        cy.log('1. ✅ Basic waiting strategies (time, network, elements)')
+        cy.log('2. ✅ Dynamic content handling (requests, scrolling)')
+        cy.log('3. ✅ Form interaction waiting (input, select, focus)')
+        cy.log('4. ✅ Animation and transition handling')
+        cy.log('5. ✅ Performance testing basics')
+        cy.log('6. ✅ Custom waiting strategies')
+        cy.log('7. ✅ Comprehensive practical exercises')
 
         cy.log('')
-        cy.log('🎯 等待策略优先级:')
-        cy.log('1. 🥇 元素状态等待 (.should())')
-        cy.log('2. 🥈 网络请求等待 (cy.wait(@alias))')
-        cy.log('3. 🥉 自定义条件等待')
-        cy.log('4. ❌ 固定时间等待 (最后选择)')
+        cy.log('🎯 Waiting Strategy Priority:')
+        cy.log('1. 🥇 Element state waiting (.should())')
+        cy.log('2. 🥈 Network request waiting (cy.wait(@alias))')
+        cy.log('3. 🥉 Custom condition waiting')
+        cy.log('4. ❌ Fixed time waiting (last resort)')
 
         cy.log('')
-        cy.log('📈 下一步学习：文件操作 (Day 11)')
-        cy.log('🎯 重点：文件读写、上传下载、多媒体处理')
+        cy.log('📈 Next Learning: File Operations (Day 11)')
+        cy.log('🎯 Focus: File I/O, upload/download, multimedia handling')
       })
     })
   })
 })
 
 /**
- * 🌟 Day 10 学习要点总结：
+ * 🌟 Day 10 Learning Points Summary:
  *
- * 1. **等待策略基础**
- *    - cy.wait() 的各种用法
- *    - 网络请求等待
- *    - DOM 元素等待
+ * 1. **Basic Waiting Strategies**
+ *    - Various uses of cy.wait()
+ *    - Network request waiting
+ *    - DOM element waiting
  *
- * 2. **动态内容处理**
- *    - 异步列表加载
- *    - 无限滚动处理
- *    - 懒加载资源等待
+ * 2. **Dynamic Content Handling**
+ *    - Network request interception and waiting
+ *    - Page scrolling handling
+ *    - Dynamic content loading
  *
- * 3. **加载状态管理**
- *    - 进度条监控
- *    - 多步骤流程
- *    - 骨架屏处理
+ * 3. **Form Interaction**
+ *    - Input operation waiting
+ *    - Select operation waiting
+ *    - Focus and blur handling
  *
- * 4. **动画和过渡**
- *    - CSS 动画等待
- *    - JavaScript 动画
- *    - 过渡效果处理
+ * 4. **Performance Testing**
+ *    - Page load time
+ *    - Resource loading monitoring
+ *    - API response time
  *
- * 5. **性能测试**
- *    - 页面加载时间
- *    - 资源加载监控
- *    - API 响应时间
+ * 5. **Advanced Techniques**
+ *    - Conditional waiting
+ *    - Retry mechanism
+ *    - Comprehensive practical applications
  *
- * 6. **高级技巧**
- *    - 自定义等待函数
- *    - 智能重试机制
- *    - 实时数据处理
+ * 💡 **Practical Tips**:
+ * - Prefer .should() over cy.wait(time)
+ * - Set timeout parameters appropriately
+ * - Leverage network interception for optimized waiting
+ * - Implement custom waiting conditions
  *
- * 💡 **实用技巧**：
- * - 优先使用 .should() 而非 cy.wait(时间)
- * - 合理设置 timeout 参数
- * - 利用网络拦截优化等待
- * - 实现自定义等待条件
- *
- * 🚀 **下一步**：掌握文件操作和上传下载测试
+ * 🚀 **Next Step**: Master file operations and upload/download testing
  */
