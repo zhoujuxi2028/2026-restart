@@ -32,3 +32,15 @@ logs
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+**/playwright/.cache/
+**/playwright/.auth/
+**/tests/screenshot*.png
+
+# Package locks (optional - usually committed)
+# package-lock.json

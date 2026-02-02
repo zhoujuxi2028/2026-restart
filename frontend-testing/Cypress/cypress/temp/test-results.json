@@ -1,9 +1,0 @@
-{
-  "timestamp": 1768979063796,
-  "testResults": {
-    "passed": 15,
-    "failed": 2,
-    "skipped": 1
-  },
-  "environment": "staging"
-}

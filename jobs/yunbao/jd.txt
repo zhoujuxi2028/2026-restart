@@ -1,0 +1,10 @@
+
+1. 
+2. 熟悉虚拟化相关的网络技术:熟悉虚拟化相关的网络技术：SR-IOV，网卡多队列, Virtio-Net,RDMA, OVS, DPDK等;
+3、熟悉主流厂家的路由器、交换机等网络设备的工作原理和特性,熟悉网络转发流程，熟悉overlay技术,如Vxlan、GRE、Geneve
+4、熟悉Linux平台，熟悉掌握shell/c/c++/
+python等至少一门语言，能够编写自动化测试脚本，熟悉基本的自动化测试框架
+5、有KVM、QEMU、Xen、Openstack、docker技术等任意一个方向的开发或测试经验优先;
+
+
+

@@ -4,7 +4,17 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(mkdir:*)",
+      "Bash(\"01-学习资料\"/{week-1,week-2,week-3,week-4,面试题库,学习笔记,官方文档} )",
+      "Bash(\"02-实战项目\"/{项目1-博客API系统,项目2-电商API后端,项目3-实时监控Dashboard} )",
+      "Bash(\"03-代码练习\"/{每日练习,代码片段,技术demo} )",
+      "Bash(\"04-环境配置\"/{开发环境,测试环境,生产环境} )",
+      "Bash(\"05-面试准备\"/{面试题答案,项目展示,简历素材})",
+      "Bash(tree:*)",
+      "mcp__thinking__sequentialthinking",
+      "WebSearch",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []

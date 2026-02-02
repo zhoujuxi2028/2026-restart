@@ -1,0 +1,11 @@
+
+
+【岗位职责】
+1、在Linux、RTOS （FreeRTOS、ThreadX、UCOS等） 环境下进行CPU小系统（RISC-V、ARM Cortex-A, ARMCortex-R，Cortex-M等）及其他外设的驱动设计与开发；
+2、深入研究操作系统内核机制，根据产品需求进行内核定制与裁剪，优化系统资源分配，提升系统整体性能与稳定性。
+3、与硬件工程师紧密协作，参与硬件产品的设计、调试与验证工作，提供驱动层面的技术支持与解决方案，协助完成硬件产品的量产工作。
+【岗位要求】
+1、计算机、通信、电子等相关专业，硕士2年以上、本科4年以上相关工作经验；
+2、精通 C/C++；熟练掌握多种总线和外设（PCIE/USB/SIM/DDR/Flash/MMC/SDIO/（Q）SPI/DMA/网卡/Ethernet PHY/等）；
+3、熟悉CPU体系结构（RISC-V、ARM Cortex-R、ARM Cortex-A, etc）；4、熟悉Linux， RTOS （FreeRTOS、ThreadX、UCOS等）；5、熟悉linux开发环境；加分项：具备NB-IoT/LTE/CDMA/WCDMA/TDSCDMA/WiFi 等无线通信系统开发经验者优先；
+
