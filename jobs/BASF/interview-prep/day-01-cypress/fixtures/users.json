@@ -1,0 +1,23 @@
+{
+  "admin": {
+    "username": "admin@example.com",
+    "password": "Admin@123",
+    "fullName": "Administrator",
+    "role": "administrator",
+    "userId": "admin-001"
+  },
+  "standardUser": {
+    "username": "john.doe@example.com",
+    "password": "User@123",
+    "fullName": "John Doe",
+    "role": "user",
+    "userId": "user-001"
+  },
+  "testUser": {
+    "username": "test.user@example.com",
+    "password": "Test@123",
+    "fullName": "Test User",
+    "role": "tester",
+    "userId": "test-001"
+  }
+}
