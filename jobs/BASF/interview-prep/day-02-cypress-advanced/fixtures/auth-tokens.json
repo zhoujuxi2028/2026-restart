@@ -1,0 +1,79 @@
+{
+  "validToken": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlN0YW5kYXJkIFVzZXIiLCJpYXQiOjE3MDg0MjgwMDAsImV4cCI6MTcwODQzMTYwMH0.abc123xyz789",
+    "expiresIn": 3600,
+    "tokenType": "Bearer",
+    "userId": 2,
+    "refreshToken": "refresh_abc123xyz789"
+  },
+  "adminToken": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwibmFtZSI6IkFkbWluIFVzZXIiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDg0MjgwMDAsImV4cCI6MTcwODQzMTYwMH0.admin_token_xyz",
+    "expiresIn": 3600,
+    "tokenType": "Bearer",
+    "userId": 1,
+    "refreshToken": "refresh_admin_123",
+    "permissions": ["read", "write", "delete", "manage_users"]
+  },
+  "expiredToken": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkV4cGlyZWQgVXNlciIsImlhdCI6MTcwODAwMDAwMCwiZXhwIjoxNzA4MDAwMDAxfQ.expired_token",
+    "expiresIn": -3600,
+    "tokenType": "Bearer",
+    "userId": 5,
+    "status": "expired"
+  },
+  "invalidToken": {
+    "token": "invalid.token.format",
+    "error": "invalid_token",
+    "message": "Token format is invalid"
+  },
+  "refreshTokenSuccess": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlJlZnJlc2hlZCBVc2VyIiwiaWF0IjoxNzA4NDI4NjAwLCJleHAiOjE3MDg0MzIyMDB9.refreshed_token_new",
+    "expiresIn": 3600,
+    "tokenType": "Bearer",
+    "userId": 2,
+    "refreshToken": "refresh_new_token_456"
+  },
+  "refreshTokenExpired": {
+    "error": "refresh_token_expired",
+    "message": "Refresh token has expired. Please log in again.",
+    "statusCode": 401
+  },
+  "oauth2Token": {
+    "access_token": "oauth2_access_token_abc123",
+    "token_type": "Bearer",
+    "expires_in": 3600,
+    "refresh_token": "oauth2_refresh_token_xyz789",
+    "scope": "read write",
+    "userId": 2,
+    "provider": "google"
+  },
+  "apiKeyAuth": {
+    "apiKey": "api_key_123abc456def789",
+    "apiSecret": "api_secret_xyz789uvw012",
+    "userId": 2,
+    "rateLimit": 1000,
+    "rateLimitRemaining": 998,
+    "rateLimitReset": 1708432200
+  },
+  "sessionToken": {
+    "sessionId": "sess_abc123xyz789def456",
+    "userId": 2,
+    "createdAt": "2026-02-14T09:00:00Z",
+    "expiresAt": "2026-02-14T13:00:00Z",
+    "ipAddress": "192.168.1.100",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  },
+  "multiFactorAuth": {
+    "token": "mfa_token_temp_abc123",
+    "requiresMFA": true,
+    "mfaMethods": ["sms", "email", "authenticator_app"],
+    "userId": 2,
+    "message": "Please complete MFA to continue"
+  },
+  "tokenRotation": {
+    "currentToken": "token_current_abc123",
+    "nextToken": "token_next_xyz789",
+    "rotationTime": "2026-02-14T10:00:00Z",
+    "gracePeriod": 300
+  }
+}

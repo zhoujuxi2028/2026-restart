@@ -1,0 +1,84 @@
+{
+  "admin": {
+    "id": 1,
+    "email": "admin@example.com",
+    "password": "Admin123!",
+    "firstName": "Admin",
+    "lastName": "User",
+    "role": "admin",
+    "permissions": ["read", "write", "delete", "manage_users"],
+    "authToken": "admin-token-abc123xyz789"
+  },
+  "standard": {
+    "id": 2,
+    "email": "user@example.com",
+    "password": "User123!",
+    "firstName": "Standard",
+    "lastName": "User",
+    "role": "user",
+    "permissions": ["read", "write"],
+    "authToken": "user-token-def456uvw012"
+  },
+  "readonly": {
+    "id": 3,
+    "email": "readonly@example.com",
+    "password": "Readonly123!",
+    "firstName": "Readonly",
+    "lastName": "User",
+    "role": "viewer",
+    "permissions": ["read"],
+    "authToken": "readonly-token-ghi789rst345"
+  },
+  "premium": {
+    "id": 4,
+    "email": "premium@example.com",
+    "password": "Premium123!",
+    "firstName": "Premium",
+    "lastName": "Member",
+    "role": "premium_user",
+    "permissions": ["read", "write", "export"],
+    "authToken": "premium-token-jkl012mno678",
+    "subscription": {
+      "plan": "premium",
+      "expiresAt": "2026-12-31T23:59:59Z",
+      "features": ["unlimited_storage", "priority_support", "advanced_analytics"]
+    }
+  },
+  "expired": {
+    "id": 5,
+    "email": "expired@example.com",
+    "password": "Expired123!",
+    "firstName": "Expired",
+    "lastName": "User",
+    "role": "user",
+    "permissions": ["read"],
+    "authToken": "expired-token-invalid",
+    "accountStatus": "expired"
+  },
+  "testBatch": [
+    {
+      "id": 101,
+      "email": "test1@example.com",
+      "password": "Test123!",
+      "firstName": "Test",
+      "lastName": "User One",
+      "role": "user"
+    },
+    {
+      "id": 102,
+      "email": "test2@example.com",
+      "password": "Test123!",
+      "firstName": "Test",
+      "lastName": "User Two",
+      "role": "user"
+    },
+    {
+      "id": 103,
+      "email": "test3@example.com",
+      "password": "Test123!",
+      "firstName": "Test",
+      "lastName": "User Three",
+      "role": "user"
+    }
+  ]
+}

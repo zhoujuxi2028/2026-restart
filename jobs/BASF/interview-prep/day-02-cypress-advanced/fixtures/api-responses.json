@@ -1,0 +1,182 @@
+{
+  "productList": {
+    "products": [
+      {
+        "id": 1,
+        "name": "Laptop Pro 15",
+        "description": "High-performance laptop for professionals",
+        "price": 1299.99,
+        "category": "Electronics",
+        "inStock": true,
+        "stockQuantity": 45,
+        "imageUrl": "/images/laptop-pro-15.jpg",
+        "rating": 4.5,
+        "reviews": 128
+      },
+      {
+        "id": 2,
+        "name": "Wireless Mouse",
+        "description": "Ergonomic wireless mouse with 6 buttons",
+        "price": 29.99,
+        "category": "Accessories",
+        "inStock": true,
+        "stockQuantity": 234,
+        "imageUrl": "/images/wireless-mouse.jpg",
+        "rating": 4.2,
+        "reviews": 89
+      },
+      {
+        "id": 3,
+        "name": "USB-C Hub",
+        "description": "7-in-1 USB-C hub with HDMI and card reader",
+        "price": 49.99,
+        "category": "Accessories",
+        "inStock": false,
+        "stockQuantity": 0,
+        "imageUrl": "/images/usb-c-hub.jpg",
+        "rating": 4.7,
+        "reviews": 201
+      },
+      {
+        "id": 4,
+        "name": "Mechanical Keyboard",
+        "description": "RGB mechanical keyboard with cherry MX switches",
+        "price": 149.99,
+        "category": "Accessories",
+        "inStock": true,
+        "stockQuantity": 67,
+        "imageUrl": "/images/mechanical-keyboard.jpg",
+        "rating": 4.8,
+        "reviews": 342
+      },
+      {
+        "id": 5,
+        "name": "4K Monitor",
+        "description": "27-inch 4K IPS monitor with HDR",
+        "price": 399.99,
+        "category": "Electronics",
+        "inStock": true,
+        "stockQuantity": 12,
+        "imageUrl": "/images/4k-monitor.jpg",
+        "rating": 4.6,
+        "reviews": 156
+      }
+    ],
+    "total": 5,
+    "page": 1,
+    "pageSize": 10
+  },
+  "searchResults": {
+    "query": "laptop",
+    "results": [
+      {
+        "id": 1,
+        "name": "Laptop Pro 15",
+        "price": 1299.99,
+        "inStock": true
+      }
+    ],
+    "total": 1
+  },
+  "cartSummary": {
+    "items": [
+      {
+        "productId": 1,
+        "name": "Laptop Pro 15",
+        "price": 1299.99,
+        "quantity": 1,
+        "subtotal": 1299.99
+      },
+      {
+        "productId": 2,
+        "name": "Wireless Mouse",
+        "price": 29.99,
+        "quantity": 2,
+        "subtotal": 59.98
+      }
+    ],
+    "subtotal": 1359.97,
+    "tax": 135.99,
+    "shipping": 0,
+    "total": 1495.96
+  },
+  "orderConfirmation": {
+    "orderId": "ORD-2026-00123",
+    "status": "confirmed",
+    "customerEmail": "test@example.com",
+    "items": [
+      {
+        "productId": 1,
+        "name": "Laptop Pro 15",
+        "quantity": 1,
+        "price": 1299.99
+      }
+    ],
+    "subtotal": 1299.99,
+    "tax": 129.99,
+    "shipping": 0,
+    "total": 1429.98,
+    "paymentMethod": "Credit Card",
+    "paymentStatus": "paid",
+    "shippingAddress": {
+      "street": "123 Test Street",
+      "city": "Test City",
+      "state": "TC",
+      "zipCode": "12345",
+      "country": "USA"
+    },
+    "estimatedDelivery": "2026-02-20",
+    "createdAt": "2026-02-14T10:30:00Z"
+  },
+  "paymentSuccess": {
+    "transactionId": "txn_abc123xyz789",
+    "status": "completed",
+    "amount": 1429.98,
+    "currency": "USD",
+    "paymentMethod": "credit_card",
+    "cardLast4": "4242",
+    "timestamp": "2026-02-14T10:30:15Z"
+  },
+  "paymentDeclined": {
+    "error": "card_declined",
+    "message": "Your card was declined",
+    "declineCode": "insufficient_funds",
+    "timestamp": "2026-02-14T10:30:15Z"
+  },
+  "apiError": {
+    "error": "internal_server_error",
+    "message": "An unexpected error occurred",
+    "statusCode": 500,
+    "timestamp": "2026-02-14T10:30:15Z",
+    "requestId": "req_error_12345"
+  },
+  "userProfile": {
+    "id": 2,
+    "email": "user@example.com",
+    "firstName": "Standard",
+    "lastName": "User",
+    "role": "user",
+    "createdAt": "2025-01-15T08:00:00Z",
+    "lastLogin": "2026-02-14T09:00:00Z",
+    "preferences": {
+      "language": "en",
+      "timezone": "America/New_York",
+      "emailNotifications": true,
+      "darkMode": false
+    },
+    "statistics": {
+      "totalOrders": 12,
+      "totalSpent": 2456.89,
+      "accountAge": 395
+    }
+  },
+  "discountApplied": {
+    "couponCode": "SAVE20",
+    "discountType": "percentage",
+    "discountValue": 20,
+    "originalTotal": 99.99,
+    "discount": 20.00,
+    "newTotal": 79.99,
+    "message": "Discount applied successfully"
+  }
+}
