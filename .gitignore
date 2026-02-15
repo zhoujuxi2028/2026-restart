@@ -44,3 +44,13 @@ blob-report/
 
 # Package locks (optional - usually committed)
 # package-lock.json
+
+# Newman test reports
+**/newman-report.html
+**/newman/*.html
+**/newman/*.json
+**/newman/*.xml
+newman/
+
+# Docker volumes and data
+**/docker-data/
