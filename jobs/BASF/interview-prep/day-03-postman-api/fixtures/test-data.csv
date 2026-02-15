@@ -1,0 +1,6 @@
+username,email,role,expectedStatus
+testuser1,testuser1@example.com,admin,201
+testuser2,testuser2@example.com,user,201
+testuser3,testuser3@example.com,moderator,201
+invaliduser,,user,400
+duplicateuser,testuser1@example.com,user,409

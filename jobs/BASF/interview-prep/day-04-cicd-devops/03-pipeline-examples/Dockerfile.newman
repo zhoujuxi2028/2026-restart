@@ -1,0 +1,293 @@
+# Dockerfile for Newman API Tests
+# This file creates a Docker image containing Newman (Postman CLI) for running
+# API tests with comprehensive reporting capabilities.
+#
+# Interview Talking Point:
+# "This Dockerfile demonstrates how to containerize API tests using Newman. It's
+# much lighter than the Cypress image since API tests don't require browsers.
+# We've added HTML reporters for beautiful, shareable test reports that stakeholders
+# can review."
+
+# Use official Newman Alpine image (lightweight)
+# Interview Talking Point:
+# "We use the Alpine-based Newman image because API tests don't need a full OS.
+# Alpine is a minimal Linux distribution that reduces our image size from ~1GB
+# to ~150MB while providing everything Newman needs to run."
+FROM postman/newman:alpine
+
+# Alternative base images:
+# FROM postman/newman:latest              # Ubuntu-based (larger but more compatible)
+# FROM postman/newman:5-alpine            # Specific version pinning
+# FROM node:16-alpine                     # Custom install of Newman
+
+# Set maintainer information
+LABEL maintainer="qa-team@example.com"
+LABEL description="Newman API test container with HTML reporters"
+
+# Set working directory
+# Interview Talking Point:
+# "We use /etc/newman as the working directory following Postman conventions.
+# This makes paths predictable and aligns with the official Newman Docker image
+# structure."
+WORKDIR /etc/newman
+
+# Install additional Newman reporters
+# Interview Talking Point:
+# "The base Newman image includes only the CLI reporter. We install htmlextra
+# and junit reporters for better visualization and CI integration. The htmlextra
+# reporter generates beautiful, standalone HTML reports with charts and metrics."
+RUN npm install -g \
+    newman-reporter-htmlextra \
+    newman-reporter-json
+
+# Install other useful tools (optional)
+# Interview Talking Point:
+# "We add curl and jq for health checks and JSON manipulation. These tools are
+# tiny but incredibly useful for scripting and debugging API tests."
+RUN apk add --no-cache \
+    curl \
+    jq
+
+# Copy Postman collections
+# Interview Talking Point:
+# "We organize collections by domain (auth, users, products, etc.). This modular
+# approach allows us to run specific API test suites independently or in parallel."
+COPY postman/collections ./collections/
+
+# Copy environment files
+# Interview Talking Point:
+# "Environment files contain variables like base URLs and credentials. We keep
+# multiple environments (dev, staging, prod) and select which to use at runtime.
+# Secrets are never hardcoded - they're injected via environment variables."
+COPY postman/environments ./environments/
+
+# Copy data files if using data-driven testing
+COPY postman/data ./data/ 2>/dev/null || true
+
+# Create reports directory
+# Interview Talking Point:
+# "We pre-create the reports directory with proper permissions. This directory
+# will be volume-mounted in CI to extract reports after test execution."
+RUN mkdir -p reports && chmod 777 reports
+
+# Create a script for running all collections
+# Interview Talking Point:
+# "This script runs all collections sequentially and generates a consolidated
+# report. In CI, we'd typically run collections in parallel using multiple
+# containers, but this script is useful for local development and debugging."
+RUN echo '#!/bin/sh\n\
+echo "Running all API test collections..."\n\
+\n\
+FAILED=0\n\
+\n\
+for collection in collections/*.json; do\n\
+    COLLECTION_NAME=$(basename "$collection" .json)\n\
+    echo ""\n\
+    echo "========================================"\n\
+    echo "Running: $COLLECTION_NAME"\n\
+    echo "========================================"\n\
+    \n\
+    newman run "$collection" \\\n\
+        --environment environments/${ENVIRONMENT:-staging}.json \\\n\
+        --reporters cli,htmlextra,junit \\\n\
+        --reporter-htmlextra-export reports/"$COLLECTION_NAME"-report.html \\\n\
+        --reporter-junit-export reports/"$COLLECTION_NAME"-junit.xml \\\n\
+        --bail \\\n\
+        --delay-request 500 \\\n\
+        --timeout-request 10000 || FAILED=1\n\
+done\n\
+\n\
+if [ $FAILED -eq 1 ]; then\n\
+    echo ""\n\
+    echo "❌ Some tests failed"\n\
+    exit 1\n\
+else\n\
+    echo ""\n\
+    echo "✅ All tests passed"\n\
+    exit 0\n\
+fi\n\
+' > /usr/local/bin/run-all-tests && chmod +x /usr/local/bin/run-all-tests
+
+# Create a health check script
+# Interview Talking Point:
+# "This health check verifies that Newman is installed and working. In docker-compose,
+# this ensures the Newman container is ready before dependent services start."
+RUN echo '#!/bin/sh\n\
+newman --version > /dev/null 2>&1\n\
+' > /usr/local/bin/healthcheck && chmod +x /usr/local/bin/healthcheck
+
+# Health check configuration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD /usr/local/bin/healthcheck
+
+# Default environment variables
+# Interview Talking Point:
+# "Default environment variables provide sensible defaults while allowing runtime
+# override. ENVIRONMENT selects which Postman environment to use. These can be
+# overridden with -e flag in docker run or environment section in docker-compose."
+ENV ENVIRONMENT=staging \
+    DELAY_REQUEST=500 \
+    TIMEOUT_REQUEST=10000 \
+    BAIL_ON_FAILURE=true
+
+# Set default command to run a single collection
+# Interview Talking Point:
+# "The default command runs the auth-api collection. This can be overridden at
+# runtime to run different collections or use the run-all-tests script. We use
+# environment variables for configuration, making the container flexible."
+CMD newman run collections/auth-api.json \
+    --environment environments/${ENVIRONMENT}.json \
+    --reporters cli,htmlextra,junit \
+    --reporter-htmlextra-export reports/auth-api-report.html \
+    --reporter-junit-export reports/auth-api-junit.xml \
+    --bail \
+    --delay-request ${DELAY_REQUEST} \
+    --timeout-request ${TIMEOUT_REQUEST}
+
+# Alternative commands (can override at runtime):
+# Run all tests:
+#   docker run --rm newman-tests:latest run-all-tests
+#
+# Run specific collection:
+#   docker run --rm newman-tests:latest \
+#     newman run collections/users-api.json --environment environments/staging.json
+#
+# Run with different environment:
+#   docker run --rm -e ENVIRONMENT=production newman-tests:latest
+#
+# Run without bailing on first failure:
+#   docker run --rm -e BAIL_ON_FAILURE=false newman-tests:latest
+
+# Build instructions:
+# docker build -f Dockerfile.newman -t newman-tests:latest .
+#
+# Run instructions:
+# Basic run (uses default command):
+#   docker run --rm newman-tests:latest
+#
+# Run all collections:
+#   docker run --rm newman-tests:latest run-all-tests
+#
+# Run with environment override:
+#   docker run --rm -e ENVIRONMENT=production newman-tests:latest
+#
+# With volume mount to extract reports:
+#   docker run --rm \
+#     -v $(pwd)/newman-reports:/etc/newman/reports \
+#     newman-tests:latest run-all-tests
+#
+# Run specific collection:
+#   docker run --rm newman-tests:latest \
+#     newman run collections/users-api.json \
+#     --environment environments/staging.json \
+#     --reporters cli,htmlextra
+#
+# With API credentials from environment:
+#   docker run --rm \
+#     -e API_KEY=your-api-key \
+#     -e API_SECRET=your-api-secret \
+#     newman-tests:latest
+#
+# Debug mode with increased verbosity:
+#   docker run --rm newman-tests:latest \
+#     newman run collections/auth-api.json \
+#     --environment environments/staging.json \
+#     --verbose
+
+# Interview Discussion Points:
+#
+# 1. Image Size Optimization:
+#    "The Alpine-based image is ~150MB compared to ~1GB for Ubuntu-based images.
+#    For API tests, we don't need a full OS, so Alpine's minimal footprint is
+#    perfect. This reduces storage costs and speeds up image pulls in CI."
+#
+# 2. Reporter Selection:
+#    "We use three reporters: CLI for real-time console output, htmlextra for
+#    stakeholder-friendly reports, and JUnit for CI integration. JUnit format
+#    allows Jenkins, GitLab, and GitHub to parse results and show test trends."
+#
+# 3. Environment Management:
+#    "Postman environments are powerful. We keep separate environment files for
+#    each deployment stage. At runtime, we select which environment to use via
+#    the ENVIRONMENT variable. Secrets are injected as environment variables
+#    rather than stored in environment files."
+#
+# 4. Bail vs Continue:
+#    "The --bail flag stops execution on first failure, providing fast feedback.
+#    This is ideal for CI. For comprehensive test runs (like nightly), we'd
+#    disable bail to see all failures at once."
+#
+# 5. Request Delays:
+#    "The --delay-request flag adds delays between requests to avoid overwhelming
+#    APIs or triggering rate limits. We use 500ms as a sensible default but can
+#    adjust based on API characteristics."
+#
+# 6. Parallel vs Sequential:
+#    "This Dockerfile supports sequential execution via run-all-tests script.
+#    In CI, we'd run collections in parallel using multiple containers (matrix
+#    strategy in GitHub Actions or parallel in GitLab CI) for faster execution."
+#
+# 7. Artifact Preservation:
+#    "We volume-mount the reports directory to extract HTML and JUnit reports
+#    after test execution. This allows CI systems to archive artifacts and display
+#    test results in their UI."
+#
+# 8. Flexibility:
+#    "The combination of environment variables and overridable commands makes
+#    this container extremely flexible. It works for local development, CI, and
+#    even production monitoring without modification."
+#
+# 9. Security Practices:
+#    "We never commit API keys or secrets to the repository. They're injected
+#    at runtime via environment variables or secret management tools. Postman
+#    environment files contain only non-sensitive configuration."
+#
+# 10. Integration with CI/CD:
+#     "This Dockerfile integrates seamlessly with any CI/CD system. GitLab CI,
+#     GitHub Actions, and Jenkins can all run Newman containers with minimal
+#     configuration. The JUnit reporter enables rich test reporting in CI UIs."
+
+# Example docker-compose.yml integration:
+# version: '3.8'
+# services:
+#   newman:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile.newman
+#     environment:
+#       - ENVIRONMENT=staging
+#       - API_KEY=${API_KEY}
+#       - API_SECRET=${API_SECRET}
+#     volumes:
+#       - ./newman-reports:/etc/newman/reports
+#     depends_on:
+#       - api
+#     command: run-all-tests
+
+# Example CI pipeline integration (GitLab CI):
+# test:newman:
+#   stage: test
+#   image:
+#     name: newman-tests:latest
+#   script:
+#     - run-all-tests
+#   artifacts:
+#     when: always
+#     paths:
+#       - reports/
+#     reports:
+#       junit: reports/*-junit.xml
+
+# Example parallel execution in CI (GitHub Actions):
+# strategy:
+#   matrix:
+#     collection: [auth-api, users-api, products-api, orders-api]
+# steps:
+#   - run: |
+#       docker run --rm \
+#         -v $(pwd)/reports:/etc/newman/reports \
+#         -e API_KEY=${{ secrets.API_KEY }} \
+#         newman-tests:latest \
+#         newman run collections/${{ matrix.collection }}.json \
+#         --environment environments/staging.json \
+#         --reporters cli,htmlextra,junit

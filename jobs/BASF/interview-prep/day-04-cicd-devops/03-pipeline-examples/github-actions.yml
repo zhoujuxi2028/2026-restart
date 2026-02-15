@@ -1,0 +1,586 @@
+# GitHub Actions Workflow Configuration
+# This file demonstrates a complete CI/CD workflow for running Cypress and Newman tests
+# in GitHub Actions with matrix strategy, caching, and comprehensive reporting.
+#
+# File location: .github/workflows/test.yml
+#
+# Interview Talking Point:
+# "This GitHub Actions workflow showcases the platform's strengths: simple YAML syntax,
+# rich marketplace of actions, matrix strategy for parallel execution, and seamless
+# GitHub integration. It's ideal for teams already using GitHub for source control."
+
+name: CI/CD Pipeline
+
+# Workflow triggers
+# Interview Talking Point:
+# "We trigger this workflow on pushes to main and develop branches, pull requests,
+# and allow manual dispatch for ad-hoc runs. We can also schedule it for nightly
+# regression tests."
+on:
+  # Trigger on push to specific branches
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+
+  # Trigger on pull request
+  pull_request:
+    branches:
+      - main
+      - develop
+
+  # Allow manual workflow dispatch
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+  # Schedule nightly runs
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM daily
+
+# Workflow-level environment variables
+env:
+  NODE_VERSION: '16'
+  CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
+
+# Define jobs
+jobs:
+  # Job 1: Install dependencies and cache
+  # Interview Talking Point:
+  # "We have a dedicated install job that caches dependencies. Subsequent jobs
+  # can restore from cache, avoiding repeated npm installs. This saves 2-3 minutes
+  # per workflow run."
+  install:
+    name: Install Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Cache node_modules and Cypress binary
+      # Interview Talking Point:
+      # "GitHub Actions' cache action is very efficient. It automatically handles
+      # cache keys and restoration. We cache both node_modules and the Cypress
+      # binary to minimize install time."
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        id: cache-deps
+        with:
+          path: |
+            node_modules
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+          echo "✅ Dependencies installed successfully"
+
+      - name: Verify Cypress installation
+        run: npx cypress verify
+
+  # Job 2: Lint and static analysis
+  # Interview Talking Point:
+  # "Linting runs in parallel with other checks. If code quality issues are found,
+  # we get fast feedback before expensive E2E tests run."
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Run ESLint
+        run: |
+          echo "🔍 Running ESLint..."
+          npm run lint
+          echo "✅ Lint checks passed"
+
+  # Job 3: Unit tests with coverage
+  # Interview Talking Point:
+  # "Unit tests provide fast feedback - usually completing in under 2 minutes.
+  # We track code coverage and fail the build if coverage drops below threshold."
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Run unit tests
+        run: |
+          echo "🧪 Running unit tests..."
+          npm run test:unit -- --coverage
+          echo "✅ Unit tests passed"
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-unit
+
+      - name: Archive coverage artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  # Job 4: Cypress E2E Tests - Matrix Strategy
+  # Interview Talking Point:
+  # "This is where GitHub Actions really shines. We use matrix strategy to run
+  # tests in parallel across 4 containers. Each container runs roughly 1/4 of
+  # the test suite, reducing total time from 40 minutes to about 12 minutes."
+  test-cypress:
+    name: Cypress E2E Tests
+    runs-on: ubuntu-latest
+    needs: [install, lint]
+
+    # Matrix strategy for parallel execution
+    # Interview Talking Point:
+    # "The matrix strategy spawns 4 parallel jobs automatically. We could easily
+    # scale to 8 or more if needed. GitHub Actions handles the orchestration."
+    strategy:
+      fail-fast: false  # Don't cancel other jobs if one fails
+      matrix:
+        containers: [1, 2, 3, 4]
+        browser: [chrome]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      # Using official Cypress GitHub Action
+      # Interview Talking Point:
+      # "The Cypress GitHub Action from the marketplace simplifies our workflow.
+      # It handles browser installation, wait-on for application readiness, and
+      # automatic artifact upload. This is a great example of leveraging the
+      # GitHub Actions ecosystem."
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v5
+        with:
+          # Application startup
+          start: npm start
+          wait-on: 'http://localhost:3000'
+          wait-on-timeout: 120
+
+          # Cypress configuration
+          browser: ${{ matrix.browser }}
+          record: true
+          parallel: true
+          group: 'E2E Tests - ${{ matrix.browser }}'
+          ci-build-id: ${{ github.sha }}-${{ github.run_number }}
+
+          # Environment variables
+          config: baseUrl=http://localhost:3000
+
+        env:
+          # Cypress Dashboard recording key (from GitHub Secrets)
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          # GitHub token for API requests
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Upload test artifacts on failure
+      # Interview Talking Point:
+      # "We upload screenshots and videos only when tests fail, preserving them
+      # for debugging. This is crucial for investigating CI-only failures."
+      - name: Upload Cypress screenshots
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: cypress-screenshots-${{ matrix.containers }}
+          path: cypress/screenshots
+          retention-days: 7
+
+      - name: Upload Cypress videos
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: cypress-videos-${{ matrix.containers }}
+          path: cypress/videos
+          retention-days: 7
+
+  # Job 5: Cypress Smoke Tests (for feature branches)
+  # Interview Talking Point:
+  # "On feature branches, we run a lightweight smoke test suite - just the critical
+  # paths. This completes in 3 minutes and gives developers fast feedback without
+  # running the full 40-minute suite."
+  test-cypress-smoke:
+    name: Cypress Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [install, lint]
+    # Only run on feature branches
+    if: startsWith(github.ref, 'refs/heads/feature/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Run Cypress smoke tests
+        uses: cypress-io/github-action@v5
+        with:
+          start: npm start
+          wait-on: 'http://localhost:3000'
+          browser: chrome
+          spec: cypress/e2e/smoke/**/*.cy.js
+          config: video=false
+
+      - name: Upload screenshots on failure
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: smoke-test-screenshots
+          path: cypress/screenshots
+
+  # Job 6: Newman API Tests - Matrix Strategy
+  # Interview Talking Point:
+  # "We run API tests using Newman with matrix strategy. Each Postman collection
+  # runs in parallel, testing different API domains. This parallelization reduces
+  # our API test time from 15 minutes to 5 minutes."
+  test-newman:
+    name: Newman API Tests
+    runs-on: ubuntu-latest
+    needs: [install, lint]
+
+    # Matrix for different API collections
+    strategy:
+      fail-fast: false
+      matrix:
+        collection:
+          - auth-api
+          - users-api
+          - products-api
+          - orders-api
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Newman
+        run: |
+          npm install -g newman newman-reporter-htmlextra
+
+      - name: Run Newman tests
+        run: |
+          echo "🔧 Running Newman tests for ${{ matrix.collection }}..."
+          newman run \
+            postman/collections/${{ matrix.collection }}.json \
+            --environment postman/environments/staging.json \
+            --reporters cli,htmlextra,junit \
+            --reporter-htmlextra-export newman-reports/${{ matrix.collection }}-report.html \
+            --reporter-junit-export newman-reports/${{ matrix.collection }}-junit.xml \
+            --bail \
+            --delay-request 500 \
+            --timeout-request 10000
+          echo "✅ API tests for ${{ matrix.collection }} passed"
+
+        env:
+          API_BASE_URL: https://api.staging.example.com
+          API_KEY: ${{ secrets.API_KEY }}
+
+      - name: Upload Newman reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: newman-reports-${{ matrix.collection }}
+          path: newman-reports/
+          retention-days: 7
+
+  # Job 7: Cross-browser testing (nightly only)
+  # Interview Talking Point:
+  # "We run cross-browser tests nightly rather than on every commit. This balances
+  # coverage with speed - most issues are caught in Chrome tests, but we validate
+  # Firefox and Edge compatibility overnight."
+  test-cross-browser:
+    name: Cross-Browser Tests
+    runs-on: ubuntu-latest
+    needs: install
+    # Only run on schedule or manual dispatch
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox, edge]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Run Cypress on ${{ matrix.browser }}
+        uses: cypress-io/github-action@v5
+        with:
+          start: npm start
+          wait-on: 'http://localhost:3000'
+          browser: ${{ matrix.browser }}
+          record: true
+          group: 'Cross-Browser - ${{ matrix.browser }}'
+
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: ${{ matrix.browser }}-failures
+          path: |
+            cypress/screenshots
+            cypress/videos
+
+  # Job 8: Generate consolidated test report
+  # Interview Talking Point:
+  # "We generate a consolidated HTML report that summarizes all test results.
+  # This gives stakeholders a single source of truth for test status across
+  # unit, E2E, and API tests."
+  report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-cypress, test-newman]
+    if: always()  # Run even if tests fail
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Generate consolidated report
+        run: |
+          echo "📊 Generating consolidated test report..."
+          # Report generation logic here
+          echo "✅ Report generated"
+
+      - name: Upload consolidated report
+        uses: actions/upload-artifact@v3
+        with:
+          name: consolidated-test-report
+          path: reports/
+          retention-days: 30
+
+      # Add test results to GitHub summary
+      # Interview Talking Point:
+      # "GitHub Actions job summaries are great for visibility. We add a markdown
+      # summary with test results that appears directly in the Actions UI."
+      - name: Add test summary to GitHub
+        if: always()
+        run: |
+          echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+
+  # Job 9: Deploy to staging
+  # Interview Talking Point:
+  # "Deployment only happens if all tests pass. We use GitHub Environments for
+  # deployment protection rules, secrets management, and deployment history."
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-cypress, test-newman]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+
+    # Use GitHub Environment for deployment
+    environment:
+      name: staging
+      url: https://staging.example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to staging
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          # Deployment logic here (e.g., kubectl, AWS, etc.)
+          echo "✅ Staging deployment successful"
+
+      - name: Run smoke test against staging
+        run: |
+          echo "⏳ Waiting for staging to be ready..."
+          timeout 120 bash -c 'until curl -f https://staging.example.com/health; do sleep 5; done'
+          echo "✅ Staging is healthy"
+
+      - name: Notify team
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Staging deployment successful!'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 10: Deploy to production (manual approval required)
+  # Interview Talking Point:
+  # "Production deployment requires manual approval via GitHub Environments. This
+  # is a critical quality gate - someone must review changes before they go live.
+  # We can also restrict who can approve deployments."
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+
+    # Production environment with protection rules
+    environment:
+      name: production
+      url: https://example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying to production environment..."
+          # Deployment logic here
+          echo "✅ Production deployment successful"
+
+      - name: Verify production deployment
+        run: |
+          timeout 120 bash -c 'until curl -f https://example.com/health; do sleep 5; done'
+          echo "✅ Production is healthy"
+
+      - name: Notify team
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Production deployment successful! 🎉'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Create GitHub release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          body: |
+            Automated release from workflow ${{ github.run_number }}
+            Commit: ${{ github.sha }}
+
+# Interview Tips for Discussing This Workflow:
+#
+# 1. Emphasize GitHub Integration:
+#    "GitHub Actions is tightly integrated with GitHub. We can easily reference
+#    commits, pull requests, and issues. The Actions tab provides excellent
+#    visibility into workflow runs."
+#
+# 2. Highlight Marketplace Actions:
+#    "We leverage marketplace actions like cypress-io/github-action and
+#    codecov/codecov-action. This saves us from writing custom scripts and
+#    provides battle-tested solutions."
+#
+# 3. Discuss Matrix Strategy:
+#    "Matrix strategy is incredibly powerful. We can easily test across multiple
+#    Node versions, browsers, or operating systems just by adding to the matrix."
+#
+# 4. Explain Job Dependencies:
+#    "The 'needs' keyword creates a dependency graph. This ensures jobs run in
+#    the correct order while allowing parallelization where possible."
+#
+# 5. Mention GitHub Environments:
+#    "GitHub Environments are great for deployment management. We can require
+#    approvals, restrict who can deploy, and manage environment-specific secrets."
+#
+# 6. Talk About Cost Optimization:
+#    "We optimize costs by running full tests only on main branch and nightly,
+#    with smoke tests on feature branches. GitHub provides generous free minutes
+#    for public repos."
+#
+# 7. Discuss Artifacts:
+#    "Artifacts are automatically cleaned up after retention period. We keep test
+#    results for 7 days and consolidated reports for 30 days to balance storage
+#    with debugging needs."

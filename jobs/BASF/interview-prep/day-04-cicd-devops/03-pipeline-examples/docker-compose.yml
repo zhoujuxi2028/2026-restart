@@ -1,0 +1,416 @@
+# Docker Compose Configuration for Complete Test Stack
+# This file orchestrates a multi-container environment for running E2E and API tests
+# against a complete application stack with database and cache services.
+#
+# Interview Talking Point:
+# "This docker-compose file demonstrates how to orchestrate a complete test
+# environment with application, database, cache, and test containers. It shows
+# service dependencies, healthchecks, and proper startup sequencing - critical
+# for reliable test execution."
+
+version: '3.8'
+
+# Define services
+# Interview Talking Point:
+# "We define five services: the application under test, PostgreSQL database,
+# Redis cache, Cypress E2E tests, and Newman API tests. Each service is isolated
+# but can communicate via Docker's internal network."
+services:
+  # Application under test
+  # Interview Talking Point:
+  # "The app service represents our application under test. In a real scenario,
+  # this would be your actual application image. We configure it to wait for
+  # database readiness using depends_on with health conditions, ensuring proper
+  # startup sequencing."
+  app:
+    image: myapp:latest  # Replace with your actual application image
+    container_name: test-app
+    ports:
+      - "3000:3000"  # Expose port for external access
+    environment:
+      # Application configuration
+      NODE_ENV: test
+      PORT: 3000
+
+      # Database connection
+      DATABASE_URL: postgresql://testuser:testpass@postgres:5432/testdb
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: testdb
+      DB_USER: testuser
+      DB_PASSWORD: testpass
+
+      # Redis connection
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      # Application-specific settings
+      LOG_LEVEL: info
+      JWT_SECRET: test-jwt-secret-key
+      SESSION_SECRET: test-session-secret
+
+    # Health check to verify app is ready
+    # Interview Talking Point:
+    # "Healthchecks are crucial for test reliability. This ensures the app is
+    # fully started and accepting requests before tests begin. Without this,
+    # tests might start too early and fail with connection errors."
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+    # Wait for dependencies to be healthy
+    # Interview Talking Point:
+    # "The depends_on with condition: service_healthy ensures the app only starts
+    # after postgres and redis are fully ready, not just running. This prevents
+    # connection failures during startup."
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    # Network configuration
+    networks:
+      - test-network
+
+    # Restart policy
+    restart: unless-stopped
+
+  # PostgreSQL database
+  # Interview Talking Point:
+  # "We use PostgreSQL for the test database. The volume ensures data persistence
+  # across container restarts, and the initialization script seeds test data.
+  # The healthcheck verifies postgres is accepting connections, not just running."
+  postgres:
+    image: postgres:14-alpine
+    container_name: test-postgres
+    environment:
+      POSTGRES_DB: testdb
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "5432:5432"  # Expose for debugging
+
+    # Volume for data persistence
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Mount initialization script
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    # Health check to verify postgres is ready
+    # Interview Talking Point:
+    # "This healthcheck uses pg_isready with proper user and database parameters.
+    # It's more reliable than just checking if the postgres process is running.
+    # We give it up to 10 retries with 5-second intervals, allowing time for
+    # database initialization."
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+    networks:
+      - test-network
+
+    restart: unless-stopped
+
+  # Redis cache
+  # Interview Talking Point:
+  # "Redis provides caching and session storage for the application. The healthcheck
+  # uses redis-cli ping to verify Redis is responsive. This is a lightweight check
+  # that runs frequently without impacting performance."
+  redis:
+    image: redis:7-alpine
+    container_name: test-redis
+    ports:
+      - "6379:6379"
+
+    # Redis configuration
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+
+    # Volume for data persistence (optional for tests)
+    volumes:
+      - redis-data:/data
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+    networks:
+      - test-network
+
+    restart: unless-stopped
+
+  # Cypress E2E Tests
+  # Interview Talking Point:
+  # "The Cypress service builds from our Dockerfile and runs tests against the
+  # app service. It waits for the app to be healthy before starting. We volume-mount
+  # artifacts (videos, screenshots) to preserve them after the container exits."
+  cypress:
+    build:
+      context: .
+      dockerfile: Dockerfile.cypress
+    container_name: test-cypress
+    environment:
+      # Cypress configuration
+      CYPRESS_baseUrl: http://app:3000
+      CYPRESS_VIDEO: "true"
+      CYPRESS_SCREENSHOT_ON_RUN_FAILURE: "true"
+
+      # Recording configuration (if using Cypress Dashboard)
+      CYPRESS_RECORD_KEY: ${CYPRESS_RECORD_KEY:-}
+
+      # Test user credentials (injected, not hardcoded)
+      CYPRESS_TEST_USERNAME: ${TEST_USERNAME:-testuser@example.com}
+      CYPRESS_TEST_PASSWORD: ${TEST_PASSWORD:-testpass123}
+
+    # Volume mounts to preserve artifacts
+    # Interview Talking Point:
+    # "Volume mounts allow us to extract test artifacts (screenshots, videos,
+    # reports) after tests complete. This is essential for debugging failures
+    # and providing evidence of test execution in CI."
+    volumes:
+      # Preserve test artifacts
+      - ./cypress/screenshots:/e2e/cypress/screenshots
+      - ./cypress/videos:/e2e/cypress/videos
+      - ./cypress/results:/e2e/cypress/results
+
+      # Mount source code for live updates during development (optional)
+      # - ./cypress:/e2e/cypress:ro
+
+    # Wait for app to be healthy
+    # Interview Talking Point:
+    # "Cypress depends on the app being fully ready. The service_healthy condition
+    # ensures we don't start tests until the app's healthcheck passes. This
+    # eliminates flaky tests caused by premature test execution."
+    depends_on:
+      app:
+        condition: service_healthy
+
+    networks:
+      - test-network
+
+    # Command override (optional - can be set at runtime)
+    # command: npx cypress run --browser chrome --headless
+
+  # Newman API Tests
+  # Interview Talking Point:
+  # "Newman tests run in parallel with Cypress tests. They test API endpoints
+  # directly, complementing the E2E tests. We mount the reports directory to
+  # extract HTML and JUnit reports for CI integration."
+  newman:
+    build:
+      context: .
+      dockerfile: Dockerfile.newman
+    container_name: test-newman
+    environment:
+      # Newman configuration
+      ENVIRONMENT: staging
+      API_BASE_URL: http://app:3000/api
+
+      # API credentials (injected, not hardcoded)
+      API_KEY: ${API_KEY:-test-api-key}
+      API_SECRET: ${API_SECRET:-test-api-secret}
+
+      # Test configuration
+      DELAY_REQUEST: "500"
+      TIMEOUT_REQUEST: "10000"
+
+    # Volume mount for reports
+    volumes:
+      - ./newman-reports:/etc/newman/reports
+
+    # Wait for app to be healthy
+    depends_on:
+      app:
+        condition: service_healthy
+
+    networks:
+      - test-network
+
+    # Run all API test collections
+    command: run-all-tests
+
+# Define networks
+# Interview Talking Point:
+# "We use a custom bridge network to allow service-to-service communication
+# using service names as hostnames. This is more maintainable than using IP
+# addresses and works across different environments."
+networks:
+  test-network:
+    driver: bridge
+    name: test-network
+
+# Define volumes
+# Interview Talking Point:
+# "Named volumes persist data across container restarts. For test environments,
+# we typically want fresh data, but persistent volumes are useful for debugging
+# and local development."
+volumes:
+  pgdata:
+    name: test-pgdata
+  redis-data:
+    name: test-redis-data
+
+# Usage Instructions:
+#
+# Start all services:
+#   docker-compose up
+#
+# Start in detached mode:
+#   docker-compose up -d
+#
+# Run tests and stop on completion:
+#   docker-compose up --abort-on-container-exit
+#
+# Start specific service:
+#   docker-compose up app
+#
+# Run Cypress tests only:
+#   docker-compose run --rm cypress
+#
+# Run Newman tests only:
+#   docker-compose run --rm newman
+#
+# View logs:
+#   docker-compose logs
+#   docker-compose logs -f app      # Follow app logs
+#   docker-compose logs cypress     # View Cypress logs
+#
+# Stop all services:
+#   docker-compose down
+#
+# Stop and remove volumes:
+#   docker-compose down -v
+#
+# Rebuild images:
+#   docker-compose build
+#   docker-compose build --no-cache  # Force rebuild without cache
+#
+# Scale services (e.g., run 4 Cypress containers):
+#   docker-compose up --scale cypress=4
+#
+# Check service status:
+#   docker-compose ps
+#
+# Run command in running container:
+#   docker-compose exec app sh
+#   docker-compose exec postgres psql -U testuser -d testdb
+#
+# Run one-off command:
+#   docker-compose run --rm app npm run migrate
+#   docker-compose run --rm newman newman run collections/users-api.json
+
+# Environment Variables:
+# Create a .env file in the same directory as docker-compose.yml:
+#
+# # Application
+# NODE_ENV=test
+# LOG_LEVEL=info
+#
+# # Database
+# DB_PASSWORD=testpass
+#
+# # Cypress
+# CYPRESS_RECORD_KEY=your-key-here
+# TEST_USERNAME=testuser@example.com
+# TEST_PASSWORD=testpass123
+#
+# # Newman
+# API_KEY=your-api-key
+# API_SECRET=your-api-secret
+
+# Interview Discussion Points:
+#
+# 1. Service Dependencies:
+#    "The depends_on with conditions ensures proper startup order. Without this,
+#    the app might try to connect to postgres before it's ready, causing failures.
+#    This is critical for reliable test execution."
+#
+# 2. Health Checks:
+#    "Healthchecks verify services are actually ready, not just running. For
+#    postgres, we check if it's accepting connections. For the app, we hit the
+#    /health endpoint. This eliminates race conditions during startup."
+#
+# 3. Networking:
+#    "Services communicate using service names (app, postgres, redis) which
+#    Docker resolves to IP addresses. This is more maintainable than hardcoding
+#    IPs and works consistently across environments."
+#
+# 4. Volume Mounts:
+#    "We mount artifact directories to extract test results. This allows CI
+#    systems to archive screenshots, videos, and reports even after containers
+#    are deleted. Volume mounts are also useful for live code reloading during
+#    development."
+#
+# 5. Environment Variables:
+#    "We inject configuration via environment variables rather than hardcoding.
+#    Secrets come from CI/CD systems or .env files (never committed). This makes
+#    the same compose file work across environments."
+#
+# 6. Parallel Execution:
+#    "Cypress and Newman run in parallel, reducing total test time. They can
+#    also be scaled (e.g., --scale cypress=4) to run multiple test containers
+#    simultaneously for even faster execution."
+#
+# 7. Clean-up:
+#    "The --abort-on-container-exit flag is perfect for CI - it starts all
+#    services, runs tests, and stops everything when tests complete. The -v flag
+#    removes volumes for a clean slate on next run."
+#
+# 8. Debugging:
+#    "We expose ports (3000, 5432, 6379) for debugging. During development, you
+#    can connect to postgres with a DB client or inspect Redis data. In production,
+#    these ports wouldn't be exposed."
+#
+# 9. Resource Limits:
+#    "In production, we'd add resource limits (mem_limit, cpus) to prevent
+#    containers from consuming all host resources. For testing, we typically
+#    allow unlimited resources for maximum speed."
+#
+# 10. CI Integration:
+#     "This docker-compose file works in any CI environment. GitLab CI, GitHub
+#     Actions, and Jenkins can all run docker-compose commands. It provides a
+#     consistent test environment regardless of where it runs."
+
+# Advanced Usage Examples:
+#
+# 1. Override command at runtime:
+#    docker-compose run --rm cypress npx cypress run --spec cypress/e2e/login.cy.js
+#
+# 2. Run with different environment:
+#    docker-compose --env-file .env.staging up
+#
+# 3. View resource usage:
+#    docker-compose stats
+#
+# 4. Inspect network:
+#    docker network inspect test-network
+#
+# 5. Database operations:
+#    docker-compose exec postgres pg_dump -U testuser testdb > backup.sql
+#    docker-compose exec postgres psql -U testuser -d testdb < seed.sql
+#
+# 6. View environment variables:
+#    docker-compose config
+#
+# 7. Validate compose file:
+#    docker-compose config --quiet
+#
+# 8. Run tests with profiles (Docker Compose v1.28+):
+#    docker-compose --profile e2e up      # Only run E2E tests
+#    docker-compose --profile api up      # Only run API tests

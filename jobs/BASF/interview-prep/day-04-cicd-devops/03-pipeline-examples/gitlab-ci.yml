@@ -1,0 +1,441 @@
+# GitLab CI/CD Pipeline Configuration
+# This file demonstrates a complete CI/CD pipeline for running Cypress and Newman tests
+# in GitLab CI with parallel execution, caching, and comprehensive reporting.
+
+# Interview Talking Point:
+# "This GitLab CI configuration demonstrates several best practices: parallel test execution
+# for faster feedback, dependency caching to reduce install time, separate stages for
+# different test types, and comprehensive artifact collection for debugging failures."
+
+# Define pipeline stages - jobs run sequentially by stage
+stages:
+  - dependencies    # Install and cache dependencies
+  - lint           # Code quality checks
+  - build          # Build application (if needed)
+  - test:unit      # Unit tests
+  - test:e2e       # End-to-end tests with Cypress
+  - test:api       # API tests with Newman
+  - report         # Generate and publish test reports
+  - deploy         # Deploy to staging/production
+
+# Global variables accessible to all jobs
+variables:
+  # Docker settings
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+  # Cypress settings
+  CYPRESS_CACHE_FOLDER: "$CI_PROJECT_DIR/.cache/Cypress"
+  CYPRESS_VERIFY_TIMEOUT: 120000
+
+  # npm settings
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+
+  # Node environment
+  NODE_ENV: test
+
+# Cache configuration - shared across jobs to speed up pipeline
+# Interview Talking Point:
+# "Caching is critical for pipeline performance. We cache node_modules and Cypress
+# binary to avoid reinstalling on every run. This reduces our install time from
+# 5 minutes to about 90 seconds, saving 3.5 minutes per pipeline run."
+.cache_template: &cache_config
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_ID}
+    paths:
+      - node_modules/
+      - .npm/
+      - .cache/Cypress
+    policy: pull  # Default to pull, override to pull-push in install job
+
+# Install dependencies - runs once per pipeline
+# Interview Talking Point:
+# "We have a dedicated install job that caches dependencies. This allows subsequent
+# jobs to pull from cache rather than reinstalling, significantly speeding up the pipeline."
+install:dependencies:
+  stage: dependencies
+  image: node:16-alpine
+  <<: *cache_config
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_ID}
+    paths:
+      - node_modules/
+      - .npm/
+      - .cache/Cypress
+    policy: pull-push  # Both pull and push to cache
+  script:
+    - echo "📦 Installing dependencies..."
+    - npm ci --cache .npm --prefer-offline
+    - echo "✅ Dependencies installed successfully"
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# Lint and static analysis
+# Interview Talking Point:
+# "Linting runs early in the pipeline for fast feedback. If code quality issues
+# are found, we fail fast before running expensive tests."
+lint:
+  stage: lint
+  image: node:16-alpine
+  <<: *cache_config
+  script:
+    - echo "🔍 Running ESLint..."
+    - npm run lint
+    - echo "✅ Lint checks passed"
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# Build application (if applicable)
+# Interview Talking Point:
+# "The build stage compiles the application and creates artifacts. If the build
+# fails, we don't waste time running tests against broken code."
+build:
+  stage: build
+  image: node:16-alpine
+  <<: *cache_config
+  script:
+    - echo "🏗️ Building application..."
+    - npm run build
+    - echo "✅ Build completed successfully"
+  artifacts:
+    paths:
+      - dist/
+      - build/
+    expire_in: 1 day
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# Unit tests
+# Interview Talking Point:
+# "Unit tests run quickly and provide fast feedback. We generate coverage reports
+# to track test quality and ensure we're maintaining or improving coverage."
+test:unit:
+  stage: test:unit
+  image: node:16-alpine
+  <<: *cache_config
+  script:
+    - echo "🧪 Running unit tests..."
+    - npm run test:unit -- --coverage
+    - echo "✅ Unit tests passed"
+  coverage: '/Statements\s+:\s+(\d+\.\d+)%/'  # Extract coverage percentage
+  artifacts:
+    when: always
+    paths:
+      - coverage/
+    reports:
+      junit: junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    expire_in: 7 days
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# Cypress E2E Tests - Parallel Execution
+# Interview Talking Point:
+# "This is where parallel execution really shines. We run Cypress tests across
+# 4 parallel runners, reducing execution time from 40+ minutes to about 12 minutes.
+# Each runner gets a portion of tests automatically balanced by Cypress Dashboard."
+test:cypress:parallel:
+  stage: test:e2e
+  image: cypress/browsers:node16.14.2-chrome100-ff99
+  <<: *cache_config
+  parallel: 4  # GitLab spawns 4 jobs automatically
+  script:
+    - echo "🚀 Starting Cypress E2E tests (Runner ${CI_NODE_INDEX}/${CI_NODE_TOTAL})"
+
+    # Wait for application to be ready (if running alongside)
+    - |
+      if [ -n "$APP_URL" ]; then
+        echo "⏳ Waiting for application at ${APP_URL}..."
+        timeout 60 bash -c 'until curl -f ${APP_URL}/health; do sleep 2; done'
+        echo "✅ Application is ready"
+      fi
+
+    # Run Cypress with recording and parallel execution
+    # Using Cypress Dashboard for intelligent test distribution
+    - >
+      npx cypress run
+      --record
+      --parallel
+      --ci-build-id ${CI_PIPELINE_ID}
+      --group "E2E Tests - Chrome"
+      --browser chrome
+      --headless
+      --config video=true,screenshotOnRunFailure=true
+      --env baseUrl=${CYPRESS_BASE_URL:-http://localhost:3000}
+
+    - echo "✅ Cypress tests completed on runner ${CI_NODE_INDEX}"
+
+  # Collect test artifacts (screenshots, videos, reports)
+  # Interview Talking Point:
+  # "We preserve screenshots and videos from test failures. This is crucial for
+  # debugging issues that only occur in CI. The artifacts expire after 7 days to
+  # save storage space."
+  artifacts:
+    when: always  # Collect artifacts even if tests fail
+    paths:
+      - cypress/screenshots/
+      - cypress/videos/
+      - cypress/results/
+    reports:
+      junit: cypress/results/*.xml
+    expire_in: 7 days
+
+  # Retry on infrastructure failures (not test failures)
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+
+  # Environment-specific configuration
+  variables:
+    CYPRESS_BASE_URL: "https://staging.example.com"
+    CYPRESS_VIDEO: "true"
+    CYPRESS_RECORD_KEY: "${CYPRESS_RECORD_KEY}"  # From GitLab CI/CD variables
+
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# Cypress Smoke Tests (Fast subset for feature branches)
+# Interview Talking Point:
+# "On feature branches, we run a smoke test suite - 10-15 critical tests that
+# complete in 3 minutes. This provides fast feedback. Full regression runs on
+# main branch and nightly."
+test:cypress:smoke:
+  stage: test:e2e
+  image: cypress/browsers:node16.14.2-chrome100-ff99
+  <<: *cache_config
+  script:
+    - echo "💨 Running Cypress smoke tests..."
+    - >
+      npx cypress run
+      --spec "cypress/e2e/smoke/**/*.cy.js"
+      --browser chrome
+      --headless
+      --config video=false
+    - echo "✅ Smoke tests passed"
+  artifacts:
+    when: on_failure
+    paths:
+      - cypress/screenshots/
+    expire_in: 3 days
+  only:
+    - /^feature\/.*/
+    - /^bugfix\/.*/
+  except:
+    - main
+    - develop
+
+# Newman API Tests - Parallel Execution
+# Interview Talking Point:
+# "We run API tests in parallel using multiple Postman collections. Each collection
+# represents a domain (auth, users, products, etc.) and runs independently. This
+# parallelization reduces our API test time from 15 minutes to 5 minutes."
+test:newman:parallel:
+  stage: test:api
+  image: postman/newman:alpine
+  parallel:
+    matrix:
+      - COLLECTION:
+        - auth-api
+        - users-api
+        - products-api
+        - orders-api
+  script:
+    - echo "🔧 Running Newman tests for ${COLLECTION}..."
+
+    # Run Newman with HTML reporter
+    - >
+      newman run
+      postman/collections/${COLLECTION}.json
+      --environment postman/environments/staging.json
+      --reporters cli,htmlextra,junit
+      --reporter-htmlextra-export newman-reports/${COLLECTION}-report.html
+      --reporter-junit-export newman-reports/${COLLECTION}-junit.xml
+      --bail
+      --delay-request 500
+      --timeout-request 10000
+
+    - echo "✅ API tests for ${COLLECTION} passed"
+
+  # Collect Newman reports
+  artifacts:
+    when: always
+    paths:
+      - newman-reports/
+    reports:
+      junit: newman-reports/*-junit.xml
+    expire_in: 7 days
+
+  variables:
+    API_BASE_URL: "https://api.staging.example.com"
+
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# Generate comprehensive test report
+# Interview Talking Point:
+# "We consolidate all test results into a single report. This provides stakeholders
+# with a complete view of test status across unit, E2E, and API tests."
+report:consolidated:
+  stage: report
+  image: node:16-alpine
+  <<: *cache_config
+  script:
+    - echo "📊 Generating consolidated test report..."
+    - npm run report:generate
+    - echo "✅ Report generated successfully"
+  artifacts:
+    paths:
+      - reports/consolidated-report.html
+    expire_in: 30 days
+  only:
+    - main
+    - develop
+
+# Deploy to staging environment
+# Interview Talking Point:
+# "Deployment only happens if all tests pass. This ensures we never deploy
+# broken code. We use blue-green deployment strategy to enable instant rollback."
+deploy:staging:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - echo "🚀 Deploying to staging environment..."
+
+    # Deployment logic here (e.g., kubectl apply, docker push, etc.)
+    - echo "Deployment would happen here"
+
+    # Run smoke test against deployed environment
+    - echo "⏳ Waiting for staging deployment to be ready..."
+    - timeout 120 bash -c 'until curl -f https://staging.example.com/health; do sleep 5; done'
+    - echo "✅ Staging deployment successful"
+
+  environment:
+    name: staging
+    url: https://staging.example.com
+
+  # Manual approval required for production
+  when: manual
+
+  only:
+    - main
+
+# Deploy to production environment
+# Interview Talking Point:
+# "Production deployment requires manual approval for safety. We've implemented
+# this as a quality gate to ensure someone reviews the changes before they go live."
+deploy:production:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - echo "🚀 Deploying to production environment..."
+
+    # Deployment logic here
+    - echo "Production deployment would happen here"
+
+    # Verify production deployment
+    - timeout 120 bash -c 'until curl -f https://example.com/health; do sleep 5; done'
+    - echo "✅ Production deployment successful"
+
+    # Notify team
+    - echo "📢 Notifying team of successful production deployment..."
+
+  environment:
+    name: production
+    url: https://example.com
+
+  when: manual  # Require manual trigger
+
+  only:
+    - main
+
+# Nightly comprehensive test run
+# Interview Talking Point:
+# "We run comprehensive tests nightly - full regression, cross-browser testing,
+# and performance tests. This catches issues that might not surface in our faster
+# PR pipelines."
+test:nightly:comprehensive:
+  stage: test:e2e
+  image: cypress/browsers:latest
+  <<: *cache_config
+  script:
+    - echo "🌙 Running nightly comprehensive tests..."
+
+    # Run full test suite on multiple browsers
+    - echo "Running tests on Chrome..."
+    - npx cypress run --browser chrome --headless
+
+    - echo "Running tests on Firefox..."
+    - npx cypress run --browser firefox --headless
+
+    - echo "Running tests on Edge..."
+    - npx cypress run --browser edge --headless
+
+    - echo "✅ Nightly tests completed"
+
+  artifacts:
+    when: always
+    paths:
+      - cypress/screenshots/
+      - cypress/videos/
+      - cypress/results/
+    expire_in: 14 days
+
+  # Send notifications on failure
+  after_script:
+    - |
+      if [ $CI_JOB_STATUS == 'failed' ]; then
+        echo "❌ Nightly tests failed - sending notification..."
+        # Notification logic here (Slack, email, etc.)
+      fi
+
+  # Only run on schedule (configured in GitLab UI)
+  only:
+    - schedules
+
+# Interview Tips for Discussing This Pipeline:
+#
+# 1. Start with High-Level Overview:
+#    "This GitLab CI pipeline has 7 stages, from dependency installation through
+#    deployment. It demonstrates parallel execution, caching, and comprehensive
+#    test coverage."
+#
+# 2. Highlight Optimization Techniques:
+#    "We use caching to speed up dependency installation, parallel execution for
+#    tests, and smart test splitting based on branch type."
+#
+# 3. Explain Quality Gates:
+#    "Each stage acts as a quality gate. If linting fails, we don't waste time
+#    on tests. If tests fail, we don't deploy."
+#
+# 4. Discuss Trade-offs:
+#    "We balance speed and coverage by running smoke tests on feature branches
+#    and full regression on main. This gives fast feedback without sacrificing
+#    quality."
+#
+# 5. Mention Artifacts and Debugging:
+#    "We preserve screenshots, videos, and reports for debugging. These artifacts
+#    are invaluable when tests fail only in CI."
+#
+# 6. Talk About Notifications:
+#    "The pipeline integrates with Slack for failure notifications, ensuring the
+#    team responds quickly to issues."

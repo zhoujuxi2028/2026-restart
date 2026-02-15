@@ -1,0 +1,218 @@
+# Dockerfile for Cypress E2E Tests
+# This file creates a Docker image containing Cypress tests with all dependencies
+# and browsers pre-installed for consistent, reproducible test execution.
+#
+# Interview Talking Point:
+# "This Dockerfile demonstrates best practices for containerizing E2E tests:
+# using official images, optimizing layer caching, setting appropriate work
+# directories, and including browser verification. This ensures our tests run
+# identically across local development, CI, and any other environment."
+
+# Use official Cypress Docker image with browsers pre-installed
+# Interview Talking Point:
+# "We use the official cypress/browsers image which includes Chrome, Firefox,
+# and Edge pre-installed. This saves us from manually installing browsers and
+# dealing with dependency issues. The image is maintained by the Cypress team
+# and regularly updated."
+FROM cypress/browsers:node16.14.2-chrome100-ff99
+
+# Alternative base images:
+# FROM cypress/browsers:latest                    # Latest version (may have breaking changes)
+# FROM cypress/browsers:node18.12.0-chrome107     # Specific versions for stability
+# FROM cypress/included:12.3.0                    # Includes Cypress binary pre-installed
+
+# Set maintainer information
+LABEL maintainer="qa-team@example.com"
+LABEL description="Cypress E2E test container with Chrome, Firefox, and Edge"
+
+# Set working directory
+# Interview Talking Point:
+# "We set a clear working directory (/e2e) for all operations. This makes paths
+# predictable and simplifies debugging. All subsequent COPY and RUN commands
+# operate relative to this directory."
+WORKDIR /e2e
+
+# Environment variables
+# Interview Talking Point:
+# "Environment variables configure Cypress behavior and Node.js settings. We set
+# the cache folder explicitly to ensure Cypress binaries are stored in a known
+# location, which helps with caching in CI environments."
+ENV CYPRESS_CACHE_FOLDER=/root/.cache/Cypress \
+    NODE_ENV=test \
+    CYPRESS_VERIFY_TIMEOUT=120000 \
+    ELECTRON_DISABLE_SANDBOX=1
+
+# Copy package files first (for layer caching optimization)
+# Interview Talking Point:
+# "This is a critical optimization. By copying package.json and package-lock.json
+# separately before the source code, Docker can cache the npm install layer. Since
+# dependencies change less frequently than source code, this saves significant
+# time on subsequent builds - typically 3-5 minutes per build."
+COPY package.json package-lock.json ./
+
+# Install dependencies
+# Interview Talking Point:
+# "We use 'npm ci' instead of 'npm install' because it's faster and more reliable
+# for CI environments. It installs exact versions from package-lock.json and fails
+# if lock file is out of sync with package.json. The --quiet flag reduces log
+# noise. --prefer-offline uses cache when possible."
+RUN npm ci --quiet --prefer-offline
+
+# Copy Cypress configuration files
+# Interview Talking Point:
+# "We copy configuration files explicitly to make the build process transparent.
+# This also allows us to verify configurations before copying all test files."
+COPY cypress.config.js ./
+COPY cypress.env.json ./
+
+# Copy Cypress test files and support files
+# Interview Talking Point:
+# "We copy the entire Cypress directory containing tests, fixtures, and support
+# files. By doing this after npm install, we ensure test file changes don't
+# invalidate the dependency layer cache."
+COPY cypress/ ./cypress/
+
+# Copy additional configuration files if present
+COPY tsconfig.json ./ 2>/dev/null || true
+
+# Verify Cypress installation
+# Interview Talking Point:
+# "The verify command ensures Cypress is correctly installed and the binary is
+# accessible. This catches installation issues at build time rather than runtime,
+# providing faster feedback. If verification fails, the Docker build fails."
+RUN npx cypress verify
+
+# Display Cypress and browser versions for debugging
+# Interview Talking Point:
+# "We log version information during the build. This is invaluable for debugging
+# environment-specific issues and ensures we know exactly what versions are in
+# the image. This information appears in build logs and can be referenced later."
+RUN npx cypress version && \
+    google-chrome --version && \
+    firefox --version
+
+# Create directories for test artifacts
+# Interview Talking Point:
+# "We pre-create directories for screenshots, videos, and results. This ensures
+# proper permissions and makes volume mounting in docker-compose more predictable."
+RUN mkdir -p cypress/screenshots cypress/videos cypress/results
+
+# Set correct permissions
+# Interview Talking Point:
+# "Permission issues are common when running Docker containers. We explicitly
+# set permissions to ensure the Cypress user can write test artifacts. This
+# prevents 'permission denied' errors when running tests."
+RUN chmod -R 777 cypress/screenshots cypress/videos cypress/results
+
+# Expose port if running Cypress in interactive mode (optional)
+# This is useful for debugging in local development
+EXPOSE 5555
+
+# Set default command
+# Interview Talking Point:
+# "The default command runs Cypress in headless mode. This can be overridden
+# when running the container to use different configurations or browsers. For
+# example: docker run <image> npm run cy:run -- --browser firefox"
+CMD ["npm", "run", "cy:run"]
+
+# Alternative commands (can override at runtime):
+# CMD ["npx", "cypress", "run", "--browser", "chrome", "--headless"]
+# CMD ["npx", "cypress", "run", "--spec", "cypress/e2e/**/*.cy.js"]
+# CMD ["npx", "cypress", "open"]  # For interactive mode (requires X11 forwarding)
+
+# Health check (optional but recommended)
+# Interview Talking Point:
+# "Health checks are useful in orchestrated environments like Docker Compose or
+# Kubernetes. This simple check verifies that Node.js is responding. For more
+# complex scenarios, you could check if the application under test is reachable."
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node --version || exit 1
+
+# Build instructions:
+# docker build -f Dockerfile.cypress -t cypress-tests:latest .
+#
+# Run instructions:
+# Basic run:
+#   docker run --rm cypress-tests:latest
+#
+# With environment variables:
+#   docker run --rm -e CYPRESS_baseUrl=https://staging.example.com cypress-tests:latest
+#
+# With volume mount to preserve artifacts:
+#   docker run --rm \
+#     -v $(pwd)/cypress/videos:/e2e/cypress/videos \
+#     -v $(pwd)/cypress/screenshots:/e2e/cypress/screenshots \
+#     cypress-tests:latest
+#
+# Run specific spec file:
+#   docker run --rm cypress-tests:latest \
+#     npx cypress run --spec cypress/e2e/login.cy.js
+#
+# Run on specific browser:
+#   docker run --rm cypress-tests:latest \
+#     npx cypress run --browser firefox
+#
+# Run with Cypress Dashboard recording:
+#   docker run --rm \
+#     -e CYPRESS_RECORD_KEY=your-key-here \
+#     cypress-tests:latest \
+#     npx cypress run --record --parallel --ci-build-id $CI_BUILD_ID
+
+# Interview Discussion Points:
+#
+# 1. Layer Caching Strategy:
+#    "The order of COPY commands is intentional. By copying package files first,
+#    we create a cached layer that's only invalidated when dependencies change.
+#    This optimization reduces build time by 70% in most cases."
+#
+# 2. Official vs Custom Images:
+#    "We use the official Cypress image because it's maintained, tested, and
+#    includes all browser dependencies. Building a custom image from scratch
+#    would require installing Chrome, Firefox, and all their dependencies -
+#    a complex and error-prone process."
+#
+# 3. Multi-stage Builds (Advanced):
+#    "For production, we could use multi-stage builds to separate build dependencies
+#    from runtime dependencies, creating smaller final images. However, for test
+#    images, size is less critical than reproducibility."
+#
+# 4. Security Considerations:
+#    "Running as root inside the container is acceptable for test environments.
+#    For production, we'd create a non-root user. We also scan images for
+#    vulnerabilities using tools like Snyk or Trivy."
+#
+# 5. Version Pinning:
+#    "We pin specific versions (node16.14.2-chrome100) rather than using 'latest'
+#    to ensure reproducibility. This prevents unexpected breakage from upstream
+#    changes. We update versions deliberately through pull requests."
+#
+# 6. Environment Flexibility:
+#    "Environment variables allow runtime configuration without rebuilding the
+#    image. This lets us use the same image across different environments
+#    (dev, staging, prod) by just changing variables."
+#
+# 7. Debugging Support:
+#    "The version logging and health check aid debugging. When tests fail, we
+#    can immediately see what versions were used, helping identify environment
+#    drift issues."
+#
+# 8. CI/CD Integration:
+#    "This Dockerfile integrates seamlessly with any CI/CD system that supports
+#    Docker. We can use it in GitLab CI, GitHub Actions, Jenkins, or even locally
+#    for consistent testing."
+
+# Example docker-compose.yml integration:
+# version: '3.8'
+# services:
+#   cypress:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile.cypress
+#     environment:
+#       - CYPRESS_baseUrl=http://app:3000
+#       - CYPRESS_VIDEO=true
+#     volumes:
+#       - ./cypress/videos:/e2e/cypress/videos
+#       - ./cypress/screenshots:/e2e/cypress/screenshots
+#     depends_on:
+#       - app
