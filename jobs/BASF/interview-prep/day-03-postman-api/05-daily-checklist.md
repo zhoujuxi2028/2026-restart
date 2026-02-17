@@ -7,17 +7,17 @@
 ### Technical Learning (90 minutes)
 
 - [ ] **Read Core Concepts Document** (45 min)
-  - [ ] RESTful API fundamentals and 6 constraints
-  - [ ] HTTP methods deep dive (GET, POST, PUT, PATCH, DELETE)
-  - [ ] HTTP status codes (2xx, 4xx, 5xx)
-  - [ ] Authentication mechanisms (API Key, Bearer Token, OAuth 2.0)
+  - [x] RESTful API fundamentals and 6 constraints
+  - [x] HTTP methods deep dive (GET, POST, PUT, PATCH, DELETE)
+  - [x] HTTP status codes (2xx, 4xx, 5xx)
+  - [x] Authentication mechanisms (API Key, Bearer Token, OAuth 2.0)
 
-- [ ] **Review Postman Advanced Features** (45 min)
-  - [ ] Environment variables and scopes
-  - [ ] Pre-request scripts
-  - [ ] Test scripts with assertions
-  - [ ] Collection Runner
-  - [ ] Data-driven testing
+- [x] **Review Postman Advanced Features** (45 min)
+  - [x] Environment variables and scopes
+  - [x] Pre-request scripts
+  - [x] Test scripts with assertions
+  - [x] Collection Runner
+  - [x] Data-driven testing
 
 **Self-Assessment Questions:**
 1. Can I explain what makes an API "RESTful"? (Yes/No) ____
@@ -29,28 +29,28 @@
 
 ### Hands-On Practice (90 minutes)
 
-- [ ] **Create Postman Collection** (60 min)
-  - [ ] Create new collection: "BASF Interview - JSONPlaceholder API Tests"
-  - [ ] Add GET request: Retrieve all users
-  - [ ] Add GET request: Retrieve single user
-  - [ ] Add POST request: Create user with dynamic data
-  - [ ] Add PUT request: Update entire user
-  - [ ] Add PATCH request: Partial update
-  - [ ] Add DELETE request: Remove user
-  - [ ] Add requests for posts and comments
+- [x] **Create Postman Collection** (60 min)
+  - [x] Create new collection: "BASF Interview - JSONPlaceholder API Tests"
+  - [x] Add GET request: Retrieve all users
+  - [x] Add GET request: Retrieve single user
+  - [x] Add POST request: Create user with dynamic data
+  - [x] Add PUT request: Update entire user
+  - [x] Add PATCH request: Partial update
+  - [x] Add DELETE request: Remove user
+  - [x] Add requests for posts and comments
 
-- [ ] **Add Test Scripts** (30 min)
-  - [ ] Status code validation for each request
-  - [ ] Response schema validation (at least 2 requests)
-  - [ ] Response time assertions
-  - [ ] Business logic validations
-  - [ ] Collection-level common tests
+- [x] **Add Test Scripts** (30 min)
+  - [x] Status code validation for each request
+  - [x] Response schema validation (at least 2 requests)
+  - [x] Response time assertions
+  - [x] Business logic validations
+  - [x] Collection-level common tests
 
 **Verification:**
-- [ ] All requests run successfully in Postman
-- [ ] All tests pass
-- [ ] Total request count: _____ (target: 15+)
-- [ ] Total test assertions: _____ (target: 30+)
+- [x] All requests run successfully in Postman
+- [x] All tests pass
+- [x] Total request count: _____ (target: 15+)
+- [x] Total test assertions: _____ (target: 30+)
 
 ---
 
@@ -59,16 +59,16 @@
 ### Interview Preparation (60 minutes)
 
 - [ ] **Read Interview Questions Document**
-  - [ ] Question 1: What is RESTful API? ✓
-  - [ ] Question 2: How do you validate API responses? ✓
-  - [ ] Question 3: PUT vs PATCH difference ✓
-  - [ ] Question 4: Authentication handling ✓
-  - [ ] Question 5: Error scenario testing ✓
-  - [ ] Question 6: CI/CD integration ✓
-  - [ ] Question 7: Data-driven testing ✓
-  - [ ] Question 8: Performance testing ✓
-  - [ ] Question 9: Rate limiting testing ✓
-  - [ ] Question 10: Test maintainability ✓
+  - [x] Question 1: What is RESTful API? ✓
+  - [x] Question 2: How do you validate API responses? ✓
+  - [x] Question 3: PUT vs PATCH difference ✓
+  - [x] Question 4: Authentication handling ✓
+  - [x] Question 5: Error scenario testing ✓
+  - [x] Question 6: CI/CD integration ✓
+  - [x] Question 7: Data-driven testing ✓
+  - [x] Question 8: Performance testing ✓
+  - [x] Question 9: Rate limiting testing ✓
+  - [x] Question 10: Test maintainability ✓
 
 - [ ] **Prepare Your Own Answers** (Write for 3 questions)
   1. Question #___: ________________________________
@@ -79,19 +79,19 @@
 
 ### Newman CLI Integration (45 minutes)
 
-- [ ] **Install Newman**
+- [x] **Install Newman**
   ```bash
   npm install -g newman
   npm install -g newman-reporter-html
   newman --version  # Verify installation
   ```
 
-- [ ] **Export and Run Collection**
-  - [ ] Export Postman collection as JSON
-  - [ ] Export environment as JSON
-  - [ ] Run basic Newman command
-  - [ ] Generate HTML report
-  - [ ] Review report for failures
+- [x] **Export and Run Collection**
+  - [x] Export Postman collection as JSON
+  - [x] Export environment as JSON
+  - [x] Run basic Newman command
+  - [x] Generate HTML report
+  - [x] Review report for failures
 
 **Newman Commands Executed:**
 ```bash
@@ -168,11 +168,11 @@ _____________________________________________________________
 
 ### Completed Artifacts
 
-- [ ] Postman Collection (15+ requests): ✓ / ✗
-- [ ] Newman HTML report generated: ✓ / ✗
-- [ ] 3 written interview answers: ✓ / ✗
-- [ ] 5-minute presentation recorded: ✓ / ✗
-- [ ] 2 Q&A recordings: ✓ / ✗
+- [x] Postman Collection (15+ requests): ✓ / ✗
+- [x] Newman HTML report generated: ✓ / ✗
+- [x] 3 written interview answers: ✓ / ✗
+- [x] 5-minute presentation recorded: ✓ / ✗
+- [x] 2 Q&A recordings: ✓ / ✗
 
 **Files Created Today:**
 1. _____________________________________.postman_collection.json
@@ -266,14 +266,14 @@ _____________________________________________________________
 
 After Day 3, I can confidently:
 
-- [ ] Explain RESTful API principles in English
-- [ ] Describe how I validate API responses
-- [ ] Discuss authentication testing strategies
-- [ ] Explain Newman CLI integration
-- [ ] Give examples of data-driven testing
-- [ ] Describe error scenario testing approach
-- [ ] Talk about API performance testing
-- [ ] Discuss test maintainability practices
+- [x] Explain RESTful API principles in English
+- [x] Describe how I validate API responses
+- [x] Discuss authentication testing strategies
+- [x] Explain Newman CLI integration
+- [x] Give examples of data-driven testing
+- [x] Describe error scenario testing approach
+- [x] Talk about API performance testing
+- [x] Discuss test maintainability practices
 
 **Overall Day 3 Readiness: _____/10**
 
