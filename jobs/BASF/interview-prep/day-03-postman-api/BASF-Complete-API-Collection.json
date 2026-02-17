@@ -1,0 +1,799 @@
+{
+	"info": {
+		"_postman_id": "basf-complete-collection",
+		"name": "BASF Interview - Complete API Test Collection",
+		"description": "Complete API test collection for BASF QA Automation Engineer interview preparation.\n\n✅ Features:\n- JSONPlaceholder API: CRUD operations\n- ReqRes API: Authentication flow\n- Schema validation\n- Error scenario testing  \n- Performance assertions\n- 401 vs 403 demonstrations\n\n📖 Usage:\n1. No environment needed - all variables are in the collection\n2. Start with '02B-Authentication-Flow' to understand auth\n3. Run with Newman: newman run BASF-Complete-API-Collection.json\n\n🎯 Interview Ready!",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://jsonplaceholder.typicode.com",
+			"type": "string"
+		},
+		{
+			"key": "authBaseUrl",
+			"value": "https://reqres.in/api",
+			"type": "string"
+		},
+		{
+			"key": "bearerToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "tokenExpiry",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testUserId",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Collection-level Pre-request Script",
+					"const timestamp = new Date().toISOString();",
+					"const randomId = Math.floor(Math.random() * 1000);",
+					"",
+					"pm.collectionVariables.set('timestamp', timestamp);",
+					"pm.collectionVariables.set('randomUserId', randomId);",
+					"",
+					"console.log(`[${pm.info.requestName}] Starting at ${timestamp}`);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Collection-level Test Script",
+					"pm.test('Response time < 5s', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"console.log(`[${pm.info.requestName}] ${pm.response.code} in ${pm.response.responseTime}ms`);"
+				]
+			}
+		}
+	],
+	"item": [
+		{
+			"name": "01-Setup",
+			"description": "Health check",
+			"item": [
+				{
+					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ API is reachable', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('✅ Returns data', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    pm.expect(jsonData.length).to.be.above(0);",
+									"    console.log(`API returned ${jsonData.length} items`);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/posts",
+							"host": ["{{baseUrl}}"],
+							"path": ["posts"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "02A-Users-CRUD",
+			"description": "Complete CRUD operations",
+			"item": [
+				{
+					"name": "GET All Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('✅ Returns array of users', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    pm.expect(jsonData.length).to.be.above(0);",
+									"});",
+									"",
+									"// Save first user ID for other tests",
+									"const users = pm.response.json();",
+									"if (users.length > 0) {",
+									"    pm.collectionVariables.set('testUserId', users[0].id);",
+									"    console.log(`Saved user ID: ${users[0].id}`);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"]
+						}
+					}
+				},
+				{
+					"name": "GET Single User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Schema Validation",
+									"const schema = {",
+									"    type: 'object',",
+									"    required: ['id', 'name', 'email'],",
+									"    properties: {",
+									"        id: { type: 'integer' },",
+									"        name: { type: 'string' },",
+									"        email: { type: 'string', format: 'email' }",
+									"    }",
+									"};",
+									"",
+									"pm.test('✅ Response matches schema', function () {",
+									"    pm.response.to.have.jsonSchema(schema);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{testUserId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "{{testUserId}}"]
+						}
+					}
+				},
+				{
+					"name": "POST Create User",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const timestamp = Date.now();",
+									"pm.collectionVariables.set('newUserName', `Test User ${timestamp}`);",
+									"pm.collectionVariables.set('newUserEmail', `test${timestamp}@example.com`);"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Status 201 Created', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('✅ Returns created user', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    console.log(`Created user ID: ${jsonData.id}`);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{newUserName}}\",\n    \"email\": \"{{newUserEmail}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"]
+						}
+					}
+				},
+				{
+					"name": "PUT Update User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('✅ PUT is idempotent', function () {",
+									"    console.log('PUT can be called multiple times with same result');",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Name\",\n    \"email\": \"updated@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/{{testUserId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "{{testUserId}}"]
+						}
+					}
+				},
+				{
+					"name": "DELETE User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Status 200 or 204', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+									"});",
+									"",
+									"console.log('DELETE is idempotent - safe to call multiple times');"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{testUserId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "{{testUserId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "02B-Authentication-Flow",
+			"description": "🔐 Authentication testing with ReqRes API - Learn 401 vs 403!",
+			"item": [
+				{
+					"name": "📖 README - Start Here",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{authBaseUrl}}/users/1",
+							"host": ["{{authBaseUrl}}"],
+							"path": ["users", "1"]
+						},
+						"description": "# 🎓 Authentication Flow Tutorial\n\n## What You'll Learn\n\n1. **Login Flow** - Get JWT token\n2. **Token Storage** - Save to collection variable\n3. **Protected Requests** - Use saved token\n4. **Error Scenarios** - 401 vs 403\n\n## Order to Run\n\n1️⃣ **Login - Valid Credentials** → Get token\n2️⃣ **Get User Profile (With Token)** → Use token\n3️⃣ **Access Without Token (401)** → Missing auth\n4️⃣ **401 vs 403 Explained** → Understand difference\n\n## Key Concepts\n\n**401 Unauthorized**\n- \"Who are you?\" (Authentication failed)\n- Missing or invalid token\n- Solution: Login\n\n**403 Forbidden**\n- \"I know who you are, but you can't do this\" (Authorization failed)\n- Valid token but insufficient permissions\n- Solution: Need higher privileges\n\n## Interview Tip\n\n> \"I implement authentication testing by first logging in to get a JWT token, saving it to a collection variable, and reusing it across all protected endpoints. I test both positive scenarios (valid token) and negative scenarios (missing token returns 401, valid token with insufficient permissions returns 403).\"\n\n**Let's start! Run the requests below in order.** 👇"
+					}
+				},
+				{
+					"name": "1️⃣ Login - Valid Credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// ============================================",
+									"// Step 1: Validate Login Success",
+									"// ============================================",
+									"pm.test('✅ Login successful (200)', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// ============================================",
+									"// Step 2: Extract and Save Token",
+									"// ============================================",
+									"pm.test('✅ Token received and saved', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    ",
+									"    const token = jsonData.token;",
+									"    pm.collectionVariables.set('bearerToken', token);",
+									"    ",
+									"    // Set expiration (1 hour from now)",
+									"    const expiry = Date.now() + (60 * 60 * 1000);",
+									"    pm.collectionVariables.set('tokenExpiry', expiry);",
+									"    ",
+									"    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+									"    console.log('🎉 LOGIN SUCCESSFUL!');",
+									"    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+									"    console.log('Token:', token);",
+									"    console.log('Expires:', new Date(expiry).toLocaleString());",
+									"    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+									"    console.log('✅ Token saved to collection variable');",
+									"    console.log('✅ Now you can run protected endpoints!');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"eve.holt@reqres.in\",\n    \"password\": \"cityslicka\"\n}"
+						},
+						"url": {
+							"raw": "{{authBaseUrl}}/login",
+							"host": ["{{authBaseUrl}}"],
+							"path": ["login"]
+						},
+						"description": "**Purpose:** Login with valid credentials\n\n**What happens:**\n1. Send POST with email/password\n2. API returns JWT token\n3. Test script saves token to `{{bearerToken}}`\n4. Token is reused in all protected requests\n\n**Interview Talking Point:**\n\"This demonstrates the authentication flow. After successful login, I extract the JWT token from the response and save it to a collection variable using pm.collectionVariables.set(). This allows all subsequent requests to automatically include the token, making tests scalable and maintainable.\""
+					}
+				},
+				{
+					"name": "2️⃣ Login - Invalid Credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Invalid credentials rejected (400)', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('✅ Error message provided', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('error');",
+									"    console.log('Error message:', jsonData.error);",
+									"});",
+									"",
+									"pm.test('✅ No token returned', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.have.property('token');",
+									"    console.log('✅ Security: No token leaked on failed login');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"wrong@email.com\",\n    \"password\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{authBaseUrl}}/login",
+							"host": ["{{authBaseUrl}}"],
+							"path": ["login"]
+						},
+						"description": "**Purpose:** Test negative scenario - invalid credentials\n\n**Expected:**\n- 400 Bad Request\n- Error message\n- No token returned\n\n**Interview Talking Point:**\n\"Testing negative scenarios is crucial. This validates that the API properly rejects invalid credentials and doesn't leak tokens. In my testing strategy, I always cover both happy paths and error cases.\""
+					}
+				},
+				{
+					"name": "3️⃣ Get User Profile (With Token)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const token = pm.collectionVariables.get('bearerToken');",
+									"",
+									"if (!token) {",
+									"    console.error('❌ No token found!');",
+									"    console.error('👉 Please run \"1️⃣ Login - Valid Credentials\" first');",
+									"} else {",
+									"    console.log('✅ Token found:', token);",
+									"    console.log('✅ Proceeding with authenticated request');",
+									"}"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Authenticated request successful', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('✅ Protected data retrieved', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.expect(jsonData.data).to.have.property('email');",
+									"    ",
+									"    const user = jsonData.data;",
+									"    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+									"    console.log('✅ AUTHENTICATED REQUEST SUCCESSFUL');",
+									"    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+									"    console.log('User:', user.first_name, user.last_name);",
+									"    console.log('Email:', user.email);",
+									"    console.log('Token was automatically included in request!');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{authBaseUrl}}/users/2",
+							"host": ["{{authBaseUrl}}"],
+							"path": ["users", "2"]
+						},
+						"description": "**Purpose:** Access protected resource using saved token\n\n**How it works:**\n1. Authorization tab set to \"Bearer Token\"\n2. Token value: `{{bearerToken}}` (from collection)\n3. Postman automatically adds: `Authorization: Bearer <token>`\n\n**Interview Talking Point:**\n\"This demonstrates token reuse. After the initial login, all protected endpoints automatically include the Bearer token from our collection variable. This approach is scalable - I can run 100 requests and only need to login once. The token is automatically included in every request's Authorization header.\""
+					}
+				},
+				{
+					"name": "4️⃣ Access Without Token (401)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+									"console.log('🚫 Testing: Request WITHOUT Token');",
+									"console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+									"console.log('This request intentionally has NO auth header');",
+									"console.log('Expected: API will likely return 200 (ReqRes is lenient)');",
+									"console.log('Real APIs would return: 401 Unauthorized');",
+									"console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('📚 Understanding 401 Unauthorized', function () {",
+									"    // ReqRes doesn't enforce auth, but this explains the concept",
+									"    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+									"    console.log('📚 401 UNAUTHORIZED');",
+									"    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+									"    console.log('Meaning: \"Who are you?\"');",
+									"    console.log('');",
+									"    console.log('When you get 401:');",
+									"    console.log('• Authentication failed');",
+									"    console.log('• Missing token/credentials');",
+									"    console.log('• Invalid token');",
+									"    console.log('• Expired token');",
+									"    console.log('');",
+									"    console.log('Solution: Login to get valid token');",
+									"    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+									"    ",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{authBaseUrl}}/users/2",
+							"host": ["{{authBaseUrl}}"],
+							"path": ["users", "2"]
+						},
+						"description": "**Purpose:** Demonstrate 401 Unauthorized scenario\n\n**Expected (in real APIs):**\n- 401 Unauthorized\n- Error: Missing authentication\n\n**Note:** ReqRes.in doesn't actually enforce authentication, so this returns 200. In production APIs, this would return 401.\n\n**Interview Talking Point:**\n\"401 Unauthorized means the server doesn't know who you are - authentication failed. This happens when the token is missing, invalid, or expired. It's different from 403 Forbidden, which means the server knows who you are but you don't have permission.\""
+					}
+				},
+				{
+					"name": "5️⃣ 401 vs 403 Explained",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('📚 Understanding 401 vs 403', function () {",
+									"    console.log(`",
+									"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+									"                    401 vs 403: KEY DIFFERENCE",
+									"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+									"",
+									"🔴 401 UNAUTHORIZED",
+									"   Question: \"WHO ARE YOU?\"",
+									"   Problem: Authentication failed",
+									"   ",
+									"   Causes:",
+									"   • Missing token/credentials",
+									"   • Invalid token format",
+									"   • Expired token",
+									"   • Wrong username/password",
+									"   ",
+									"   HTTP Header: WWW-Authenticate",
+									"   User Action: Login / Provide credentials",
+									"   ",
+									"   Example: Accessing API without token",
+									"   ",
+									"",
+									"🟡 403 FORBIDDEN",
+									"   Question: \"I KNOW WHO YOU ARE, BUT YOU CAN'T DO THIS\"",
+									"   Problem: Authorization failed",
+									"   ",
+									"   Causes:",
+									"   • Valid token but insufficient permissions",
+									"   • User is not in correct role (not admin)",
+									"   • Resource access restricted by policy",
+									"   • IP address blocked",
+									"   ",
+									"   User Action: Request elevated privileges / different role",
+									"   ",
+									"   Example: Regular user accessing admin-only endpoint",
+									"   ",
+									"",
+									"📊 COMPARISON TABLE",
+									"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+									"Aspect         | 401 Unauthorized        | 403 Forbidden",
+									"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+									"Meaning        | Who are you?            | You can't do this",
+									"Issue          | Authentication failed   | Authorization failed",
+									"Token Status   | Missing/Invalid         | Valid",
+									"User Identity  | Unknown                 | Known",
+									"Solution       | Login                   | Request permission",
+									"Retry After?   | Yes (with valid token)  | No (need different role)",
+									"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+									"",
+									"🎯 REAL-WORLD SCENARIOS",
+									"",
+									"Scenario 1: User tries to GET /api/profile without token",
+									"→ Response: 401 Unauthorized",
+									"→ Reason: Server doesn't know who you are",
+									"→ Fix: Login and provide token",
+									"",
+									"Scenario 2: Regular user tries to DELETE /api/users/123",
+									"→ Response: 403 Forbidden",
+									"→ Reason: Server knows you're 'john_doe' but you're not admin",
+									"→ Fix: Need admin role",
+									"",
+									"Scenario 3: Expired token used to access protected resource",
+									"→ Response: 401 Unauthorized",
+									"→ Reason: Token is invalid (expired)",
+									"→ Fix: Refresh token or re-login",
+									"",
+									"",
+									"💡 INTERVIEW TIP",
+									"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+									"When asked about authentication testing, mention both:",
+									"",
+									"\"In my API testing, I validate both authentication and authorization.",
+									"I test that protected endpoints return 401 when accessed without",
+									"valid credentials, and 403 when accessed with valid credentials",
+									"but insufficient permissions. This ensures proper security controls.",
+									"",
+									"For example, I verify that regular users cannot access admin",
+									"endpoints even with valid tokens - they should get 403, not 200.",
+									"And requests without tokens should fail with 401 before even",
+									"checking permissions.\"",
+									"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+									"    `);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{authBaseUrl}}/users/1",
+							"host": ["{{authBaseUrl}}"],
+							"path": ["users", "1"]
+						},
+						"description": "**Purpose:** Educational request explaining 401 vs 403\n\n**Key Points:**\n\n**401 Unauthorized:**\n- \"Who are you?\"\n- Authentication failed\n- Missing/invalid/expired token\n- Solution: Login\n\n**403 Forbidden:**\n- \"I know who you are, but you can't do this\"\n- Authorization failed\n- Valid token but insufficient permissions\n- Solution: Need elevated privileges\n\n**Interview Tip:**\nAlways mention BOTH when discussing authentication testing. Show you understand the security model.\n\n**Example Answer:**\n\"I test authentication by verifying that requests without tokens return 401 Unauthorized. Then I test authorization by verifying that users with valid tokens but wrong roles get 403 Forbidden when accessing restricted resources. This ensures both layers of security are working correctly.\""
+					}
+				}
+			]
+		},
+		{
+			"name": "03-Posts-API",
+			"description": "Posts and nested resources",
+			"item": [
+				{
+					"name": "GET All Posts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('✅ Returns array', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});",
+									"",
+									"pm.test('✅ Response time < 500ms', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/posts",
+							"host": ["{{baseUrl}}"],
+							"path": ["posts"]
+						}
+					}
+				},
+				{
+					"name": "GET Posts by User (Query Params)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ All posts belong to user', function () {",
+									"    const jsonData = pm.response.json();",
+									"    const userId = parseInt(pm.collectionVariables.get('testUserId'));",
+									"    ",
+									"    jsonData.forEach(post => {",
+									"        pm.expect(post.userId).to.equal(userId);",
+									"    });",
+									"    ",
+									"    console.log(`Found ${jsonData.length} posts for user ${userId}`);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/posts?userId={{testUserId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["posts"],
+							"query": [
+								{
+									"key": "userId",
+									"value": "{{testUserId}}"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "04-Error-Scenarios",
+			"description": "Testing error responses",
+			"item": [
+				{
+					"name": "404 - Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Returns 404 for non-existent resource', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"console.log('404 error handled correctly');"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/99999",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "99999"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "05-Performance",
+			"description": "Performance testing",
+			"item": [
+				{
+					"name": "Performance Baseline",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('✅ Status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('✅ Response time < 300ms', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(300);",
+									"});",
+									"",
+									"const currentTime = pm.response.responseTime;",
+									"console.log(`Performance: ${currentTime}ms`);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "1"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

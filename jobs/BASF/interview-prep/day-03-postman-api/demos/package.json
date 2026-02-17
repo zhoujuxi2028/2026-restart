@@ -1,0 +1,39 @@
+{
+  "name": "postman-data-parsing-demos",
+  "version": "1.0.0",
+  "description": "Educational demonstrations of CSV/JSON data parsing in Postman/Newman for BASF interview preparation",
+  "main": "index.js",
+  "scripts": {
+    "demo:parse": "node parse-data-files.js",
+    "demo:iterate:csv": "node simulate-iterations.js csv",
+    "demo:iterate:json": "node simulate-iterations.js json",
+    "demo:compare": "node compare-csv-json.js",
+    "demo:all": "npm run demo:parse && echo '\n\n===== CSV ITERATION =====\n' && npm run demo:iterate:csv && echo '\n\n===== JSON ITERATION =====\n' && npm run demo:iterate:json && echo '\n\n===== COMPARISON =====\n' && npm run demo:compare",
+    "demo:quick": "npm run demo:parse && npm run demo:compare"
+  },
+  "keywords": [
+    "postman",
+    "newman",
+    "data-driven-testing",
+    "csv",
+    "json",
+    "api-testing",
+    "qa-automation",
+    "interview-prep",
+    "educational",
+    "demonstration"
+  ],
+  "author": "BASF Interview Preparation",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-repo/2026-restart.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-repo/2026-restart/issues"
+  },
+  "homepage": "https://github.com/your-repo/2026-restart/blob/main/jobs/BASF/interview-prep/day-03-postman-api/demos/README.md"
+}
