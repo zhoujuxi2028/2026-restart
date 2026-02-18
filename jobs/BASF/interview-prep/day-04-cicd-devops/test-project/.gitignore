@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json  # REMOVED: Lock file needed for reproducible builds
 
 # Cypress
 cypress/videos/

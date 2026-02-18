@@ -30,10 +30,7 @@ module.exports = defineConfig({
     testIsolation: true,
 
     // Reporter configuration for CI/CD
-    reporter: 'cypress-multi-reporters',
-    reporterOptions: {
-      configFile: 'reporter-config.json'
-    },
+    reporter: 'spec',  // Simple built-in reporter (sufficient for demo)
 
     setupNodeEvents(on, config) {
       // implement node event listeners here
