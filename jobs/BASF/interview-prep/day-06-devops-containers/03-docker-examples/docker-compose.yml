@@ -1,0 +1,327 @@
+# ============================================
+# Docker Compose for Full-Stack E2E Testing
+# ============================================
+# This docker-compose.yml demonstrates a complete testing environment
+# with application services and automated tests.
+#
+# Services:
+# - web-app: Application under test (Node.js/React)
+# - database: PostgreSQL database
+# - redis: Redis cache
+# - cypress-tests: Cypress E2E tests
+# - newman-tests: Postman/Newman API tests
+#
+# Interview Talking Points:
+# - Complete test environment in one command: `docker-compose up`
+# - Health checks ensure services are ready before tests run
+# - Isolated network for test environment
+# - Easy to add/remove services
+# - Consistent across all developer machines and CI
+# ============================================
+
+version: '3.8'
+
+# ============================================
+# Services
+# ============================================
+services:
+
+  # ============================================
+  # Application Under Test
+  # ============================================
+  web-app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: basf-web-app
+    ports:
+      - "3000:3000"
+    environment:
+      # Application configuration
+      - NODE_ENV=test
+      - PORT=3000
+      # Database connection
+      - DATABASE_URL=postgres://testuser:testpass@database:5432/testdb
+      # Redis connection
+      - REDIS_URL=redis://redis:6379
+      # API keys (use secrets in production)
+      - API_KEY=${API_KEY:-test-api-key}
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: on-failure
+
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  database:
+    image: postgres:15-alpine
+    container_name: basf-postgres
+    environment:
+      - POSTGRES_DB=testdb
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpass
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5432:5432"
+    volumes:
+      # Initialize database schema
+      - ./db-init:/docker-entrypoint-initdb.d
+      # Persist database data (optional, remove for clean slate each run)
+      # - db-data:/var/lib/postgresql/data
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: on-failure
+
+  # ============================================
+  # Redis Cache
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: basf-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: on-failure
+
+  # ============================================
+  # Cypress E2E Tests
+  # ============================================
+  cypress-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.cypress
+    container_name: basf-cypress-tests
+    environment:
+      # Point Cypress at web-app service
+      - CYPRESS_BASE_URL=http://web-app:3000
+      # Cypress configuration
+      - CYPRESS_VIDEO=true
+      - CYPRESS_SCREENSHOTS=true
+      - CYPRESS_VIDEO_COMPRESSION=32
+      # Wait for services to be ready
+      - WAIT_HOSTS=web-app:3000
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=5
+    depends_on:
+      web-app:
+        condition: service_healthy
+    networks:
+      - test-network
+    volumes:
+      # Mount results directory to access test artifacts on host
+      - ./test-results/cypress/videos:/e2e/cypress/videos
+      - ./test-results/cypress/screenshots:/e2e/cypress/screenshots
+      - ./test-results/cypress/results:/e2e/cypress/results
+    command: >
+      sh -c "
+        echo '⏳ Waiting for web-app to be fully ready...';
+        sleep 5;
+        echo '🚀 Starting Cypress tests...';
+        npx cypress run --browser chrome --config video=true;
+        EXIT_CODE=$$?;
+        echo '✅ Cypress tests completed with exit code: '$$EXIT_CODE;
+        exit $$EXIT_CODE;
+      "
+
+  # ============================================
+  # Newman API Tests
+  # ============================================
+  newman-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.newman
+    container_name: basf-newman-tests
+    environment:
+      # Point Newman at web-app service
+      - BASE_URL=http://web-app:3000
+      - COLLECTION_FILE=collections/API-Collection.json
+      - ENVIRONMENT_FILE=environments/docker-compose-env.json
+    depends_on:
+      web-app:
+        condition: service_healthy
+    networks:
+      - test-network
+    volumes:
+      # Mount results directory
+      - ./test-results/newman:/postman/results
+    command: >
+      sh -c "
+        echo '⏳ Waiting for API to be ready...';
+        sleep 5;
+        echo '🚀 Starting Newman API tests...';
+        newman run $$COLLECTION_FILE \
+          --environment $$ENVIRONMENT_FILE \
+          --reporters cli,htmlextra \
+          --reporter-htmlextra-export results/newman-report.html \
+          --color on;
+        EXIT_CODE=$$?;
+        echo '✅ Newman tests completed with exit code: '$$EXIT_CODE;
+        exit $$EXIT_CODE;
+      "
+
+# ============================================
+# Networks
+# ============================================
+# Custom bridge network for service isolation
+networks:
+  test-network:
+    driver: bridge
+    name: basf-test-network
+
+# ============================================
+# Volumes (Optional)
+# ============================================
+# Uncomment to persist database data between runs
+# volumes:
+#   db-data:
+#     name: basf-db-data
+
+# ============================================
+# Usage Instructions
+# ============================================
+#
+# Start all services:
+#   docker-compose up
+#
+# Start services in background (detached):
+#   docker-compose up -d
+#
+# Start only specific service:
+#   docker-compose up web-app database
+#
+# Run tests:
+#   docker-compose up --exit-code-from cypress-tests cypress-tests
+#   docker-compose up --exit-code-from newman-tests newman-tests
+#
+# View logs:
+#   docker-compose logs
+#   docker-compose logs -f web-app
+#   docker-compose logs cypress-tests
+#
+# Stop all services:
+#   docker-compose down
+#
+# Stop and remove volumes:
+#   docker-compose down -v
+#
+# Rebuild services:
+#   docker-compose build
+#   docker-compose up --build
+#
+# Run specific test suite:
+#   docker-compose run --rm cypress-tests npx cypress run --spec "cypress/e2e/login.cy.js"
+#
+# Interactive debugging:
+#   docker-compose run --rm cypress-tests sh
+#
+# Scale services (for load testing):
+#   docker-compose up --scale web-app=3
+#
+# ============================================
+# CI/CD Integration
+# ============================================
+#
+# GitLab CI Example:
+#   test:
+#     stage: test
+#     image: docker:latest
+#     services:
+#       - docker:dind
+#     before_script:
+#       - apk add --no-cache docker-compose
+#     script:
+#       # Start services
+#       - docker-compose up -d web-app database redis
+#       # Wait for health checks
+#       - sleep 10
+#       # Run tests
+#       - docker-compose run --rm cypress-tests
+#       - docker-compose run --rm newman-tests
+#     after_script:
+#       # Cleanup
+#       - docker-compose down -v
+#     artifacts:
+#       when: always
+#       paths:
+#         - test-results/
+#
+# GitHub Actions Example:
+#   - name: Start services
+#     run: docker-compose up -d web-app database redis
+#
+#   - name: Wait for services
+#     run: sleep 10
+#
+#   - name: Run Cypress tests
+#     run: docker-compose run --rm cypress-tests
+#
+#   - name: Run Newman tests
+#     run: docker-compose run --rm newman-tests
+#
+#   - name: Cleanup
+#     if: always()
+#     run: docker-compose down -v
+#
+#   - name: Upload test results
+#     if: always()
+#     uses: actions/upload-artifact@v3
+#     with:
+#       name: test-results
+#       path: test-results/
+#
+# ============================================
+# Troubleshooting
+# ============================================
+#
+# Issue: Services not ready when tests start
+# Solution: Increase sleep time in test command or use wait-on
+#
+# Issue: Port already in use
+# Solution: Change port mapping (e.g., "3001:3000")
+#
+# Issue: Tests can't connect to services
+# Solution: Verify all services are on same network (test-network)
+#
+# Issue: Permission errors with volumes
+# Solution: Ensure directories exist and have proper permissions:
+#   mkdir -p test-results/cypress/{videos,screenshots,results}
+#   mkdir -p test-results/newman
+#   chmod -R 777 test-results/
+#
+# Issue: Slow startup on first run
+# Solution: Normal - Docker pulls images. Subsequent runs are faster.
+#
+# ============================================
+# Interview Talking Points
+# ============================================
+# - "Docker Compose provides a complete test environment in one command"
+# - "Health checks ensure tests don't start until services are ready"
+# - "Same compose file works on all developer machines and in CI"
+# - "Easy to add new services (ElasticSearch, message queue, etc.)"
+# - "Volume mounts make test results accessible for CI artifacts"
+# - "Can run multiple test suites (Cypress + Newman) in one workflow"
+# - "Isolated network prevents interference from other Docker containers"

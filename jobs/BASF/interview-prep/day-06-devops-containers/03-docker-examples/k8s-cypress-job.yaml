@@ -1,0 +1,428 @@
+# ============================================
+# Kubernetes Job for Cypress E2E Tests
+# ============================================
+# This Kubernetes manifest demonstrates running Cypress tests
+# as a Kubernetes Job with parallelization.
+#
+# Key Concepts:
+# - Job: One-time execution (vs Deployment for long-running)
+# - Parallelism: Run multiple pods simultaneously
+# - Resource limits: Control CPU/memory usage
+# - ConfigMaps/Secrets: Manage configuration
+# - PersistentVolumeClaim: Collect test results
+#
+# Interview Talking Points:
+# - "Kubernetes Jobs are perfect for test automation"
+# - "Parallelism enables massive speedup (10x+ faster)"
+# - "Resource limits prevent tests from consuming too much infrastructure"
+# - "ConfigMaps separate configuration from code"
+# - "Can schedule with CronJob for nightly regression tests"
+# ============================================
+
+---
+# ============================================
+# Namespace (Optional but recommended)
+# ============================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test-automation
+  labels:
+    name: test-automation
+    environment: staging
+
+---
+# ============================================
+# ConfigMap: Cypress Configuration
+# ============================================
+# Store non-sensitive configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cypress-config
+  namespace: test-automation
+data:
+  # Base URL for tests
+  base-url: "https://test.example.com"
+
+  # Cypress options
+  video: "true"
+  screenshots: "true"
+  video-compression: "32"
+
+  # Parallelization settings
+  total-pods: "10"
+
+---
+# ============================================
+# Secret: API Keys and Credentials
+# ============================================
+# Store sensitive data (base64 encoded)
+# Note: For production, use external secret managers (Vault, AWS Secrets Manager)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cypress-secrets
+  namespace: test-automation
+type: Opaque
+data:
+  # echo -n "your-api-key" | base64
+  api-key: eW91ci1hcGkta2V5
+  # Cypress Dashboard record key (if using Cypress Dashboard)
+  cypress-record-key: eW91ci1jeXByZXNzLXJlY29yZC1rZXk=
+
+---
+# ============================================
+# PersistentVolumeClaim: Test Results Storage
+# ============================================
+# Shared storage for collecting test results from all pods
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cypress-results-pvc
+  namespace: test-automation
+spec:
+  accessModes:
+    - ReadWriteMany  # Multiple pods can write simultaneously
+  resources:
+    requests:
+      storage: 10Gi
+  # StorageClass depends on your cluster
+  # Examples: nfs-client, gp2 (AWS), standard (GKE)
+  storageClassName: nfs-client
+
+---
+# ============================================
+# Job: Parallel Cypress Tests
+# ============================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cypress-parallel-tests
+  namespace: test-automation
+  labels:
+    app: cypress
+    type: e2e-tests
+    version: "1.0.0"
+spec:
+  # ============================================
+  # Parallelism Configuration
+  # ============================================
+  # Run 10 pods in parallel (adjust based on your test suite size)
+  parallelism: 10
+
+  # Total number of completions needed
+  completions: 10
+
+  # Retry failed pods up to 2 times
+  backoffLimit: 2
+
+  # Automatically clean up completed pods after 1 hour
+  ttlSecondsAfterFinished: 3600
+
+  # ============================================
+  # Pod Template
+  # ============================================
+  template:
+    metadata:
+      labels:
+        app: cypress
+        type: e2e-tests
+    spec:
+      restartPolicy: Never
+
+      # ============================================
+      # Containers
+      # ============================================
+      containers:
+      - name: cypress
+        # Use your custom Cypress image
+        image: my-cypress-tests:v1.0.0
+        imagePullPolicy: Always
+
+        # ============================================
+        # Command: Split Tests Across Pods
+        # ============================================
+        command:
+          - sh
+          - -c
+          - |
+            #!/bin/sh
+            set -e
+
+            echo "================================================"
+            echo "Starting Cypress Test Pod"
+            echo "================================================"
+
+            # Get this pod's index (0-9 for 10 parallel pods)
+            POD_INDEX=${JOB_COMPLETION_INDEX:-0}
+            TOTAL_PODS=${TOTAL_PODS:-10}
+
+            echo "Pod Index: ${POD_INDEX} of ${TOTAL_PODS}"
+            echo "Base URL: ${CYPRESS_BASE_URL}"
+
+            # Get list of all spec files
+            SPEC_FILES=$(find cypress/e2e -name "*.cy.js" | sort)
+            TOTAL_SPECS=$(echo "$SPEC_FILES" | wc -l)
+
+            echo "Total spec files: ${TOTAL_SPECS}"
+
+            # Calculate which specs this pod should run
+            SPECS_PER_POD=$((TOTAL_SPECS / TOTAL_PODS + 1))
+            START_INDEX=$((POD_INDEX * SPECS_PER_POD + 1))
+            END_INDEX=$(((POD_INDEX + 1) * SPECS_PER_POD))
+
+            # Get this pod's specs
+            MY_SPECS=$(echo "$SPEC_FILES" | sed -n "${START_INDEX},${END_INDEX}p" | tr '\n' ',')
+
+            echo "Running specs: ${MY_SPECS}"
+            echo "================================================"
+
+            # Run Cypress tests for this pod's specs
+            npx cypress run \
+              --spec "${MY_SPECS}" \
+              --browser chrome \
+              --headless \
+              --reporter junit \
+              --reporter-options "mochaFile=/results/test-results-${POD_INDEX}.xml" \
+              --config video=${CYPRESS_VIDEO},screenshotOnRunFailure=${CYPRESS_SCREENSHOTS}
+
+            EXIT_CODE=$?
+            echo "================================================"
+            echo "Cypress tests completed with exit code: ${EXIT_CODE}"
+            echo "================================================"
+
+            exit $EXIT_CODE
+
+        # ============================================
+        # Environment Variables
+        # ============================================
+        env:
+        # From ConfigMap
+        - name: CYPRESS_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: cypress-config
+              key: base-url
+
+        - name: CYPRESS_VIDEO
+          valueFrom:
+            configMapKeyRef:
+              name: cypress-config
+              key: video
+
+        - name: CYPRESS_SCREENSHOTS
+          valueFrom:
+            configMapKeyRef:
+              name: cypress-config
+              key: screenshots
+
+        - name: TOTAL_PODS
+          valueFrom:
+            configMapKeyRef:
+              name: cypress-config
+              key: total-pods
+
+        # From Secret
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cypress-secrets
+              key: api-key
+
+        # Pod index from Kubernetes (for splitting tests)
+        - name: JOB_COMPLETION_INDEX
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
+
+        # Additional environment variables
+        - name: CI
+          value: "true"
+
+        - name: NODE_ENV
+          value: "test"
+
+        # ============================================
+        # Resource Limits
+        # ============================================
+        resources:
+          requests:
+            memory: "512Mi"   # Minimum guaranteed
+            cpu: "500m"       # 0.5 CPU core
+          limits:
+            memory: "1Gi"     # Maximum allowed
+            cpu: "1000m"      # 1 CPU core
+
+        # ============================================
+        # Volume Mounts
+        # ============================================
+        volumeMounts:
+        - name: test-results
+          mountPath: /results
+
+        # Optional: Mount test data
+        # - name: test-data
+        #   mountPath: /e2e/cypress/fixtures
+
+      # ============================================
+      # Volumes
+      # ============================================
+      volumes:
+      - name: test-results
+        persistentVolumeClaim:
+          claimName: cypress-results-pvc
+
+---
+# ============================================
+# CronJob: Scheduled Nightly Tests (Optional)
+# ============================================
+# Run full regression suite every night at 2 AM
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cypress-nightly-tests
+  namespace: test-automation
+spec:
+  # Schedule: Run at 2 AM every day (cron format)
+  # Minute Hour Day Month DayOfWeek
+  schedule: "0 2 * * *"
+
+  # Keep last 3 successful jobs and 1 failed job
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+
+  # Job template (same as above Job)
+  jobTemplate:
+    spec:
+      parallelism: 10
+      completions: 10
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400  # 24 hours
+      template:
+        metadata:
+          labels:
+            app: cypress
+            type: nightly-tests
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: cypress
+            image: my-cypress-tests:v1.0.0
+            # Same configuration as Job above
+            command: ["npx", "cypress", "run"]
+            env:
+            - name: CYPRESS_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: cypress-config
+                  key: base-url
+            resources:
+              requests:
+                memory: "512Mi"
+                cpu: "500m"
+              limits:
+                memory: "1Gi"
+                cpu: "1000m"
+
+---
+# ============================================
+# Service Account (Optional)
+# ============================================
+# If tests need to interact with Kubernetes API
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cypress-test-runner
+  namespace: test-automation
+
+---
+# ============================================
+# Usage Instructions
+# ============================================
+#
+# Apply all resources:
+#   kubectl apply -f k8s-cypress-job.yaml
+#
+# Check job status:
+#   kubectl get jobs -n test-automation
+#   kubectl describe job cypress-parallel-tests -n test-automation
+#
+# View pods:
+#   kubectl get pods -n test-automation -l app=cypress
+#   kubectl get pods -n test-automation -w  # Watch in real-time
+#
+# View logs:
+#   kubectl logs -n test-automation <pod-name>
+#   kubectl logs -n test-automation -l app=cypress --tail=50
+#   kubectl logs -n test-automation -l app=cypress -f  # Follow
+#
+# View logs from all pods:
+#   kubectl logs -n test-automation -l app=cypress --prefix=true
+#
+# Check for failures:
+#   kubectl get pods -n test-automation -l app=cypress --field-selector=status.phase=Failed
+#
+# Delete job:
+#   kubectl delete job cypress-parallel-tests -n test-automation
+#
+# Delete all resources:
+#   kubectl delete namespace test-automation
+#
+# Scale job (change parallelism):
+#   kubectl scale job cypress-parallel-tests --replicas=20 -n test-automation
+#
+# Re-run job:
+#   kubectl delete job cypress-parallel-tests -n test-automation
+#   kubectl apply -f k8s-cypress-job.yaml
+#
+# Copy test results from PVC:
+#   kubectl cp test-automation/<any-pod-name>:/results ./local-results -n test-automation
+#
+# ============================================
+# CI/CD Integration
+# ============================================
+#
+# GitLab CI Example:
+#   test-k8s:
+#     stage: test
+#     image: bitnami/kubectl:latest
+#     before_script:
+#       - kubectl config set-cluster k8s --server="$K8S_SERVER"
+#       - kubectl config set-credentials gitlab --token="$K8S_TOKEN"
+#       - kubectl config set-context default --cluster=k8s --user=gitlab
+#       - kubectl config use-context default
+#     script:
+#       - kubectl apply -f k8s-cypress-job.yaml
+#       - kubectl wait --for=condition=complete --timeout=20m job/cypress-parallel-tests -n test-automation
+#       - kubectl logs -l app=cypress -n test-automation
+#     after_script:
+#       - kubectl delete job cypress-parallel-tests -n test-automation
+#
+# ============================================
+# Monitoring and Debugging
+# ============================================
+#
+# View resource usage:
+#   kubectl top pods -n test-automation
+#
+# Describe pod for debugging:
+#   kubectl describe pod <pod-name> -n test-automation
+#
+# Execute into running pod:
+#   kubectl exec -it <pod-name> -n test-automation -- sh
+#
+# View events:
+#   kubectl get events -n test-automation --sort-by='.lastTimestamp'
+#
+# ============================================
+# Interview Talking Points
+# ============================================
+# - "Kubernetes Jobs are ideal for test automation - run once and complete"
+# - "Parallelism of 10 reduces 90-minute test suite to 9 minutes"
+# - "Resource limits ensure tests don't consume too much infrastructure"
+# - "ConfigMaps and Secrets separate configuration from code"
+# - "CronJobs enable scheduled regression testing (nightly, weekly)"
+# - "PersistentVolumeClaim collects results from all pods in one place"
+# - "Can scale to 100+ parallel pods for massive test suites"
+# - "Self-healing: Kubernetes automatically restarts failed pods"

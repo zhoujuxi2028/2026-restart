@@ -1,0 +1,32 @@
+{
+  "name": "basf-cicd-test-project",
+  "version": "1.0.0",
+  "description": "CI/CD pipeline practice project with Cypress and Newman tests",
+  "scripts": {
+    "test": "npm run test:cypress && npm run test:newman",
+    "test:cypress": "cypress run",
+    "test:cypress:headed": "cypress open",
+    "test:newman": "newman run postman/api-collection.json -e postman/environment.json -r cli,htmlextra,junit --reporter-htmlextra-export newman/report.html --reporter-junit-export newman/junit.xml",
+    "lint": "eslint cypress/**/*.js",
+    "ci:install": "npm ci",
+    "ci:verify": "cypress verify"
+  },
+  "keywords": [
+    "cypress",
+    "newman",
+    "postman",
+    "ci-cd",
+    "testing",
+    "automation"
+  ],
+  "author": "BASF Interview Candidate",
+  "license": "MIT",
+  "devDependencies": {
+    "cypress": "^13.6.0",
+    "newman": "^6.1.0",
+    "newman-reporter-htmlextra": "^1.23.0",
+    "eslint": "^8.55.0",
+    "eslint-plugin-cypress": "^2.15.1"
+  },
+  "dependencies": {}
+}

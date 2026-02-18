@@ -1,0 +1,197 @@
+# ============================================
+# Dockerfile for Cypress E2E Tests
+# ============================================
+# This Dockerfile demonstrates production-ready practices for
+# containerizing Cypress tests with proper caching, optimization,
+# and flexibility for different environments.
+#
+# Interview Talking Points:
+# - Uses official Cypress image for reliability
+# - Leverages Docker layer caching for faster builds
+# - Configurable via environment variables
+# - Production-ready with health checks
+# ============================================
+
+# Base Image: Official Cypress image with Node.js and browsers included
+# Using specific version tag (not :latest) ensures reproducibility
+FROM cypress/included:12.17.0
+
+# Maintainer information
+LABEL maintainer="qa-team@example.com"
+LABEL description="Cypress E2E test suite for BASF interview demo"
+LABEL version="1.0.0"
+
+# Set working directory
+WORKDIR /e2e
+
+# ============================================
+# Layer Caching Optimization
+# ============================================
+# Copy only package files first to leverage Docker layer caching.
+# This layer is only rebuilt when dependencies change, not when
+# test code changes, significantly speeding up builds.
+
+COPY package.json package-lock.json ./
+
+# Use 'npm ci' (clean install) instead of 'npm install'
+# Benefits:
+# - Faster in CI environments
+# - Uses exact versions from package-lock.json
+# - Removes existing node_modules first (clean state)
+# - Fails if package.json and package-lock.json are out of sync
+RUN npm ci --silent
+
+# ============================================
+# Copy Application Files
+# ============================================
+# Copy configuration and test files after dependencies are installed
+# This maximizes cache utilization
+
+# Cypress configuration file
+COPY cypress.config.js ./
+
+# Copy all Cypress tests, fixtures, and support files
+COPY cypress ./cypress
+
+# Copy any additional configuration files
+COPY .env.example ./.env
+
+# ============================================
+# Create Directories for Test Results
+# ============================================
+# Pre-create directories with proper permissions to avoid runtime errors
+
+RUN mkdir -p /e2e/cypress/videos \
+    && mkdir -p /e2e/cypress/screenshots \
+    && mkdir -p /e2e/cypress/results \
+    && mkdir -p /e2e/cypress/downloads
+
+# ============================================
+# Environment Variables
+# ============================================
+# Set default environment variables
+# These can be overridden at runtime with docker run -e
+
+# Cypress-specific configuration
+ENV CYPRESS_CACHE_FOLDER=/root/.cache/Cypress
+ENV CYPRESS_VIDEO=true
+ENV CYPRESS_SCREENSHOTS=true
+ENV CYPRESS_VIDEO_COMPRESSION=32
+ENV CYPRESS_TRASHING_ASSETS_BEFORE_RUNS=true
+
+# Default base URL (override in different environments)
+ENV CYPRESS_BASE_URL=http://localhost:3000
+
+# Logging configuration
+ENV DEBUG=
+ENV TERM=xterm
+
+# Node environment
+ENV NODE_ENV=test
+
+# ============================================
+# Install Additional Utilities (Optional)
+# ============================================
+# Install wait-on for waiting on services to be ready
+# Useful in docker-compose setups
+RUN npm install -g wait-on@7.0.1
+
+# ============================================
+# Health Check
+# ============================================
+# Verify that Cypress is properly installed and can be executed
+# This helps detect issues early in container orchestration
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD npx cypress verify || exit 1
+
+# ============================================
+# Expose Metrics Port (Optional)
+# ============================================
+# If you're exporting custom metrics (Prometheus, etc.)
+# EXPOSE 9090
+
+# ============================================
+# Default Command
+# ============================================
+# Run all Cypress tests in headless mode with Chrome browser
+# This command can be overridden at runtime:
+#
+# Examples:
+# - docker run image-name --spec "cypress/e2e/login.cy.js"
+# - docker run image-name --browser firefox
+# - docker run -e CYPRESS_BASE_URL=https://staging.example.com image-name
+
+CMD ["npx", "cypress", "run", \
+     "--browser", "chrome", \
+     "--headless", \
+     "--config", "video=true,screenshotOnRunFailure=true"]
+
+# ============================================
+# Alternative: Use ENTRYPOINT for more flexibility
+# ============================================
+# Uncomment these lines and comment out CMD above for an alternative approach
+# that allows easier argument overriding:
+#
+# ENTRYPOINT ["npx", "cypress", "run"]
+# CMD ["--browser", "chrome", "--headless"]
+#
+# With ENTRYPOINT, you can run:
+#   docker run image-name --spec "login.cy.js" --browser firefox
+#   (No need to repeat "npx cypress run")
+
+# ============================================
+# Build and Run Instructions
+# ============================================
+#
+# Build the image:
+#   docker build -f Dockerfile.cypress -t my-cypress-tests:latest .
+#
+# Run all tests:
+#   docker run --rm my-cypress-tests:latest
+#
+# Run specific spec:
+#   docker run --rm my-cypress-tests:latest \
+#     --spec "cypress/e2e/login.cy.js"
+#
+# Run with custom base URL:
+#   docker run --rm \
+#     -e CYPRESS_BASE_URL=https://staging.example.com \
+#     my-cypress-tests:latest
+#
+# Run with volume mount (to access results):
+#   docker run --rm \
+#     -v $(pwd)/results:/e2e/cypress/videos \
+#     -v $(pwd)/results:/e2e/cypress/screenshots \
+#     my-cypress-tests:latest
+#
+# Run interactively (for debugging):
+#   docker run -it --rm my-cypress-tests:latest sh
+#
+# Run with wait-on (wait for service):
+#   docker run --rm my-cypress-tests:latest sh -c \
+#     "wait-on http://app:3000/health --timeout 60000 && \
+#      npx cypress run"
+#
+# ============================================
+# Docker Compose Integration
+# ============================================
+# See docker-compose.yml for full-stack testing setup
+#
+# ============================================
+# CI/CD Integration
+# ============================================
+# GitLab CI Example:
+#   test:
+#     image: docker:latest
+#     services:
+#       - docker:dind
+#     script:
+#       - docker build -f Dockerfile.cypress -t cypress-tests .
+#       - docker run --rm cypress-tests
+#
+# GitHub Actions Example:
+#   - name: Build Docker image
+#     run: docker build -f Dockerfile.cypress -t cypress-tests .
+#   - name: Run tests
+#     run: docker run --rm cypress-tests

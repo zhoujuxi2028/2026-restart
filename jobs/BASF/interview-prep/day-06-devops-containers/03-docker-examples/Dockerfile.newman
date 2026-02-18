@@ -1,0 +1,212 @@
+# ============================================
+# Dockerfile for Newman (Postman) API Tests
+# ============================================
+# This Dockerfile packages Newman CLI with Postman collections
+# for API testing in containerized environments.
+#
+# Interview Talking Points:
+# - Lightweight Node.js Alpine image
+# - Newman with HTML reporters for beautiful test reports
+# - Easy CI/CD integration
+# - Flexible collection and environment management
+# ============================================
+
+# Use official Node.js Alpine image (smaller than standard Node image)
+# Alpine images are ~5MB vs ~900MB for standard images
+FROM node:18-alpine
+
+# Maintainer information
+LABEL maintainer="qa-team@example.com"
+LABEL description="Newman API test suite for Postman collections"
+LABEL version="1.0.0"
+
+# Set working directory
+WORKDIR /postman
+
+# ============================================
+# Install Newman and Reporters
+# ============================================
+# Install Newman globally with commonly used reporters
+# - newman: Core Postman CLI test runner
+# - newman-reporter-htmlextra: Beautiful HTML reports
+# - newman-reporter-html: Standard HTML reporter
+# - newman-reporter-json: JSON output for parsing
+
+RUN npm install -g \
+    newman@5.3.2 \
+    newman-reporter-htmlextra@1.22.11 \
+    newman-reporter-html@1.0.5 \
+    && npm cache clean --force
+
+# Verify Newman installation
+RUN newman --version
+
+# ============================================
+# Create Directory Structure
+# ============================================
+# Organize Postman files in a clear structure
+
+RUN mkdir -p /postman/collections \
+    && mkdir -p /postman/environments \
+    && mkdir -p /postman/data \
+    && mkdir -p /postman/results
+
+# ============================================
+# Copy Postman Files
+# ============================================
+# Copy collections, environments, and test data
+
+# Postman collection files
+COPY collections/*.json /postman/collections/
+
+# Environment files (dev, staging, production)
+COPY environments/*.json /postman/environments/
+
+# Test data files (CSV, JSON)
+COPY data/*.json /postman/data/ 2>/dev/null || true
+COPY data/*.csv /postman/data/ 2>/dev/null || true
+
+# ============================================
+# Environment Variables
+# ============================================
+# Configure Newman behavior
+
+# Default collection and environment
+ENV COLLECTION_FILE=collections/API-Collection.json
+ENV ENVIRONMENT_FILE=environments/staging.json
+
+# Reporter configuration
+ENV REPORTERS=cli,htmlextra
+ENV REPORT_OUTPUT=results/newman-report.html
+
+# Newman options
+ENV NEWMAN_TIMEOUT_REQUEST=10000
+ENV NEWMAN_TIMEOUT_SCRIPT=5000
+ENV NEWMAN_BAIL=false
+ENV NEWMAN_COLOR=on
+
+# ============================================
+# Health Check
+# ============================================
+# Verify Newman is properly installed
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD newman --version || exit 1
+
+# ============================================
+# Default Command
+# ============================================
+# Run Newman with default collection and environment
+# Produces both CLI output and HTML report
+
+CMD newman run ${COLLECTION_FILE} \
+    --environment ${ENVIRONMENT_FILE} \
+    --reporters ${REPORTERS} \
+    --reporter-htmlextra-export ${REPORT_OUTPUT} \
+    --timeout-request ${NEWMAN_TIMEOUT_REQUEST} \
+    --timeout-script ${NEWMAN_TIMEOUT_SCRIPT} \
+    --color ${NEWMAN_COLOR} \
+    --disable-unicode
+
+# ============================================
+# Alternative: ENTRYPOINT for Flexibility
+# ============================================
+# Uncomment for easier command overriding:
+#
+# ENTRYPOINT ["newman", "run"]
+# CMD ["collections/API-Collection.json", \
+#      "--environment", "environments/staging.json"]
+
+# ============================================
+# Build and Run Instructions
+# ============================================
+#
+# Build the image:
+#   docker build -f Dockerfile.newman -t my-newman-tests:latest .
+#
+# Run with default collection:
+#   docker run --rm my-newman-tests:latest
+#
+# Run specific collection:
+#   docker run --rm \
+#     -e COLLECTION_FILE=collections/Auth-API.json \
+#     my-newman-tests:latest
+#
+# Run with production environment:
+#   docker run --rm \
+#     -e ENVIRONMENT_FILE=environments/production.json \
+#     my-newman-tests:latest
+#
+# Run with custom Newman options:
+#   docker run --rm my-newman-tests:latest \
+#     newman run collections/API-Collection.json \
+#     --environment environments/prod.json \
+#     --iteration-count 5 \
+#     --delay-request 1000
+#
+# Run with volume mount (to access HTML report):
+#   docker run --rm \
+#     -v $(pwd)/reports:/postman/results \
+#     my-newman-tests:latest
+#
+# Run with data file:
+#   docker run --rm my-newman-tests:latest \
+#     newman run collections/API-Collection.json \
+#     --environment environments/staging.json \
+#     --iteration-data data/users.json
+#
+# Run with environment variables:
+#   docker run --rm \
+#     -e API_KEY=your-api-key \
+#     -e BASE_URL=https://api.example.com \
+#     my-newman-tests:latest
+#
+# ============================================
+# CI/CD Integration Examples
+# ============================================
+#
+# GitLab CI:
+#   newman-tests:
+#     stage: test
+#     image: docker:latest
+#     services:
+#       - docker:dind
+#     script:
+#       - docker build -f Dockerfile.newman -t newman-tests .
+#       - docker run --rm -v $(pwd)/results:/postman/results newman-tests
+#     artifacts:
+#       paths:
+#         - results/
+#
+# GitHub Actions:
+#   - name: Run Newman tests
+#     run: |
+#       docker build -f Dockerfile.newman -t newman-tests .
+#       docker run --rm -v $(pwd)/results:/postman/results newman-tests
+#   - name: Upload report
+#     uses: actions/upload-artifact@v3
+#     with:
+#       name: newman-report
+#       path: results/
+
+# ============================================
+# Advanced Usage: Data-Driven Testing
+# ============================================
+#
+# Run with CSV data file:
+#   docker run --rm \
+#     -v $(pwd)/data:/postman/data \
+#     my-newman-tests:latest \
+#     newman run collections/API-Collection.json \
+#     --environment environments/staging.json \
+#     --iteration-data /postman/data/test-users.csv \
+#     --iteration-count 10
+#
+# ============================================
+# Interview Talking Points
+# ============================================
+# - "I use Newman in Docker for consistent API testing across all environments"
+# - "The Alpine base image keeps the container small (~150MB vs ~1GB)"
+# - "HTML extra reporter provides beautiful, shareable test reports"
+# - "Volume mounts allow CI/CD pipelines to collect and archive reports"
+# - "Same container runs in local dev, CI, and production smoke tests"
