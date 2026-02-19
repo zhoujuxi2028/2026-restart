@@ -15,13 +15,15 @@ import './commands'
 
 // Global before hook - runs once before all tests
 before(() => {
-  cy.log('Starting test suite execution')
-  cy.log(`Environment: ${Cypress.env('environment') || 'default'}`)
+  // Use console.log instead of cy.log in global hooks
+  console.log('Starting test suite execution')
+  console.log(`Environment: ${Cypress.env('environment') || 'default'}`)
 })
 
 // Global after hook - runs once after all tests
 after(() => {
-  cy.log('Test suite execution completed')
+  // Use console.log instead of cy.log in global hooks
+  console.log('Test suite execution completed')
 })
 
 // Before each test hook
@@ -57,7 +59,7 @@ Cypress.on('uncaught:exception', (err, runnable) => {
 // Custom console log to reduce noise in CI
 if (Cypress.config('isInteractive') === false) {
   // Running in CI - suppress some console output
-  cy.log('Running in CI mode')
+  console.log('Running in CI mode')
 }
 
 // Interview Point: "We configure global timeout handling for CI stability"

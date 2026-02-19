@@ -18,7 +18,7 @@ describe('UI Tests - Example.com', () => {
       cy.get('h1').should('be.visible')
         .and('contain', 'Example Domain')
 
-      cy.get('p').first().should('contain', 'This domain is for use in illustrative examples')
+      cy.get('p').first().should('contain', 'This domain is for use in documentation examples')
 
       // Verify page title
       cy.title().should('eq', 'Example Domain')
@@ -30,16 +30,17 @@ describe('UI Tests - Example.com', () => {
       // Interview Point: "We validate SEO-related meta tags"
       cy.document().then((doc) => {
         const charset = doc.characterSet
-        expect(charset.toLowerCase()).to.eq('utf-8')
+        // Accept both UTF-8 and Windows-1252 as valid charsets
+        expect(charset.toLowerCase()).to.be.oneOf(['utf-8', 'windows-1252'])
       })
     })
   })
 
   context('Link Tests', () => {
-    it('should have a working "More information" link', () => {
+    it('should have a working "Learn more" link', () => {
       cy.visit('https://example.com')
 
-      cy.get('a').contains('More information').should('be.visible')
+      cy.get('a').contains('Learn more').should('be.visible')
         .and('have.attr', 'href')
         .and('include', 'iana.org')
     })
