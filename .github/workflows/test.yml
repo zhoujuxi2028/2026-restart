@@ -1,0 +1,250 @@
+# GitHub Actions Workflow for BASF Interview Test Project
+# This is a simplified, production-ready workflow for running Cypress E2E and Newman API tests
+#
+# Interview Talking Point:
+# "This workflow demonstrates practical CI/CD implementation for test automation. It runs
+# on every push and pull request, ensuring code quality before merging. The workflow is
+# optimized for speed with dependency caching and parallel execution."
+
+name: Test Automation CI
+
+# Workflow triggers
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
+      - '.github/workflows/test.yml'
+
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
+
+  # Allow manual workflow dispatch for testing
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Test type to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - cypress
+          - newman
+
+# Environment variables
+env:
+  NODE_VERSION: '18'
+  WORKING_DIR: 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project'
+
+# Define jobs
+jobs:
+  # Job 1: Install dependencies and cache
+  install:
+    name: Install Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '${{ env.WORKING_DIR }}/package-lock.json'
+
+      - name: Cache dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.WORKING_DIR }}/node_modules
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.WORKING_DIR)) }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+          echo "✅ Dependencies installed successfully"
+
+      - name: Verify Cypress installation
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npx cypress verify
+
+  # Job 2: Cypress E2E Tests
+  test-cypress:
+    name: Cypress E2E Tests
+    runs-on: ubuntu-latest
+    needs: install
+    if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'cypress' || github.event.inputs.test_type == ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '${{ env.WORKING_DIR }}/package-lock.json'
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.WORKING_DIR }}/node_modules
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.WORKING_DIR)) }}
+
+      - name: Run Cypress tests
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "🚀 Starting Cypress E2E tests..."
+          npm run test:cypress
+          echo "✅ Cypress tests completed"
+
+      - name: Upload Cypress screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots-${{ github.run_number }}
+          path: ${{ env.WORKING_DIR }}/cypress/screenshots
+          retention-days: 7
+
+      - name: Upload Cypress videos
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cypress-videos-${{ github.run_number }}
+          path: ${{ env.WORKING_DIR }}/cypress/videos
+          retention-days: 7
+
+  # Job 3: Newman API Tests
+  test-newman:
+    name: Newman API Tests
+    runs-on: ubuntu-latest
+    needs: install
+    if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'newman' || github.event.inputs.test_type == ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '${{ env.WORKING_DIR }}/package-lock.json'
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.WORKING_DIR }}/node_modules
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.WORKING_DIR)) }}
+
+      - name: Run Newman tests
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "🔧 Starting Newman API tests..."
+          npm run test:newman
+          echo "✅ Newman tests completed"
+
+      - name: Upload Newman reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: newman-reports-${{ github.run_number }}
+          path: ${{ env.WORKING_DIR }}/newman
+          retention-days: 7
+
+  # Job 4: Test Summary
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [test-cypress, test-newman]
+    if: always()
+
+    steps:
+      - name: Generate test summary
+        run: |
+          echo "## 🎯 Test Automation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.test-cypress.result }}" == "success" ]; then
+            echo "| Cypress E2E Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Cypress E2E Tests | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.test-newman.result }}" == "success" ]; then
+            echo "| Newman API Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Newman API Tests | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow:** ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Run Number:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View artifacts and logs for detailed results." >> $GITHUB_STEP_SUMMARY
+
+      - name: Check overall status
+        if: needs.test-cypress.result != 'success' || needs.test-newman.result != 'success'
+        run: |
+          echo "❌ Some tests failed"
+          exit 1
+
+# Interview Discussion Points:
+#
+# 1. Simplified Workflow:
+#    "This workflow is adapted for the actual project structure. We removed unit tests
+#    and build stages that don't exist, focusing on what matters: E2E and API tests."
+#
+# 2. Path Filters:
+#    "The workflow only triggers when files in the test-project directory change,
+#    avoiding unnecessary runs. This saves CI minutes and provides faster feedback."
+#
+# 3. Dependency Caching:
+#    "We use GitHub's caching action to cache node_modules and Cypress binary. This
+#    reduces install time from ~5 minutes to ~30 seconds on subsequent runs."
+#
+# 4. Parallel Execution:
+#    "Cypress and Newman tests run in parallel after dependencies are installed. This
+#    cuts total execution time in half compared to running sequentially."
+#
+# 5. Artifact Preservation:
+#    "We upload screenshots, videos, and reports as artifacts. These are crucial for
+#    debugging failures that only occur in CI. They're kept for 7 days."
+#
+# 6. Manual Dispatch:
+#    "The workflow_dispatch allows manual triggering with options to run specific test
+#    types. This is useful for debugging or running targeted tests without a commit."
+#
+# 7. Test Summary:
+#    "The summary job creates a markdown table in GitHub's Actions UI showing test
+#    results at a glance. This provides quick visibility without diving into logs."
+#
+# 8. Conditional Execution:
+#    "Each test job can be run independently using workflow_dispatch inputs. This
+#    flexibility is useful when you need to rerun only failed tests."
