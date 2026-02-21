@@ -63,7 +63,9 @@ services:
   # than Cypress (~150MB vs ~1GB) since API tests don't need browsers. We generate
   # multiple report formats for different audiences."
   newman:
-    image: postman/newman:6-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.newman
     container_name: basf-newman-tests
     working_dir: /etc/newman
 
@@ -124,11 +126,19 @@ volumes:
 # Usage Instructions
 # =============================================================================
 
-# Run all tests:
-#   docker-compose up --abort-on-container-exit
+# Run all tests (recommended - wait for all containers):
+#   docker compose up -d
+#   docker compose wait cypress newman
+#   docker compose down
+#
+# Run with npm script:
+#   npm run docker:test
+#
+# Run with detailed logs:
+#   npm run docker:test:logs
 #
 # Run in detached mode:
-#   docker-compose up -d
+#   docker compose up -d
 #
 # Run Cypress tests only:
 #   docker-compose up cypress
@@ -197,8 +207,10 @@ volumes:
 #
 # 7. CI/CD Integration:
 #    "This compose file works identically on local machines and in CI. GitHub Actions,
-#    GitLab CI, and Jenkins can all run 'docker-compose up --abort-on-container-exit'
-#    to execute tests. This ensures consistency across environments."
+#    GitLab CI, and Jenkins can all run 'docker compose up --exit-code-from cypress'
+#    to execute tests. This ensures consistency across environments. Using
+#    --exit-code-from cypress ensures Newman can complete first without killing
+#    the still-running Cypress container."
 #
 # 8. Resource Efficiency:
 #    "No resource limits are set, allowing tests to use available resources. In
@@ -211,6 +223,13 @@ volumes:
 #    specific tests or with different options."
 #
 # 10. Clean-up Strategy:
-#     "The --abort-on-container-exit flag is perfect for CI: start, test, stop.
-#     The -v flag on 'down' removes volumes for a clean slate. Without -v, the
-#     Cypress cache persists, speeding up subsequent runs."
+#     "The --exit-code-from flag is perfect for CI: it waits for the specified
+#     service to complete and returns its exit code. The -v flag on 'down' removes
+#     volumes for a clean slate. Without -v, the Cypress cache persists, speeding
+#     up subsequent runs."
+#
+# 11. Custom Docker Images:
+#     "The Newman service uses a custom Dockerfile to add htmlextra reporter support.
+#     This demonstrates understanding of when to extend official images vs building
+#     from scratch. The build context allows us to version-control our image
+#     configuration alongside the application code."

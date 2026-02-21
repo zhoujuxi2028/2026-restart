@@ -95,6 +95,7 @@ day-04-cicd-devops/
 
 ## ⚡ 快速命令参考
 
+### 本地运行（需要Node.js）
 ```bash
 # 运行所有测试
 cd test-project && npm test
@@ -111,6 +112,26 @@ npm run test:newman
 # 查看测试报告
 open newman/report.html          # macOS
 xdg-open newman/report.html      # Linux
+```
+
+### Docker 运行（推荐用于 CI/CD）
+```bash
+# 构建自定义 Newman 镜像（首次运行或 Dockerfile 更新后）
+cd test-project
+npm run docker:build
+
+# 运行所有测试（等待 Cypress 完成）
+npm run docker:test
+
+# 运行所有测试（手动停止）
+npm run docker:test:watch
+
+# 清理容器和卷
+npm run docker:clean
+
+# 查看容器日志
+docker compose logs cypress
+docker compose logs newman
 ```
 
 ---

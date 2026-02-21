@@ -12,16 +12,48 @@ This is a **fully functional test project** for practicing CI/CD pipeline integr
 
 ```
 test-project/
-├── package.json                 # Node.js dependencies and scripts
-├── cypress.config.js            # Cypress configuration
-├── cypress/
-│   └── e2e/
-│       ├── 01-api-tests.cy.js   # API testing examples
-│       └── 02-ui-tests.cy.js    # UI testing examples
-├── postman/
-│   ├── api-collection.json      # Postman collection for API tests
-│   └── environment.json         # Environment variables
-└── README.md                    # This file
+├── README.md                      # This file - project overview
+├── CLAUDE.md                      # Organization guidelines for AI assistance
+├── package.json                   # Node.js dependencies and scripts
+├── cypress.config.js              # Cypress configuration
+├── docker-compose.yml             # Multi-container orchestration
+├── Dockerfile.newman              # Newman container definition
+│
+├── cypress/                       # Cypress test suite
+│   ├── e2e/                       # E2E test files
+│   │   ├── 01-api-tests.cy.js    # API testing examples
+│   │   └── 02-ui-tests.cy.js     # UI testing examples
+│   ├── fixtures/                  # Test data files
+│   ├── support/                   # Support files and custom commands
+│   ├── videos/                    # Test execution recordings (auto-generated)
+│   └── screenshots/               # Failure screenshots (auto-generated)
+│
+├── postman/                       # Postman/Newman API tests
+│   ├── api-collection.json        # API test collection
+│   └── environment.json           # Environment variables
+│
+├── newman/                        # Newman test output
+│   ├── report.html                # HTML test report
+│   └── junit.xml                  # JUnit XML for CI integration
+│
+├── test-logs/                     # Test execution logs
+│   └── README.md                  # Log directory documentation
+│
+├── scripts/                       # Utility scripts
+│   └── run-regression-test-with-logs.sh  # Regression test runner
+│
+└── docs/                          # Project documentation
+    ├── README.md                  # Documentation directory overview
+    ├── guides/                    # User guides and tutorials
+    │   ├── CI-CD-GUIDE.md        # CI/CD setup and integration guide
+    │   └── TROUBLESHOOTING.md    # Common issues and solutions
+    ├── analysis/                  # Analysis reports
+    │   ├── CICD-COMPLETE-ANALYSIS.md     # CI/CD implementation analysis
+    │   └── REGRESSION-TEST-RESULT.md     # Test execution results
+    └── fixes/                     # Bug fix records
+        ├── BUGFIX-SUMMARY.md      # Summary of applied fixes
+        ├── BUG-LIST.md            # Identified bugs and status
+        └── README-DOCKER-FIXES.md # Docker-related fixes
 ```
 
 ## Quick Start
@@ -76,6 +108,17 @@ CYPRESS_baseUrl=https://example.com npm run test:cypress
 
 # Set custom base URL for Newman
 BASE_URL=https://api.example.com npm run test:newman
+```
+
+#### Run Regression Tests with Detailed Logs
+```bash
+# Run full regression suite with detailed logging
+npm run docker:test:logs
+
+# Or directly
+./scripts/run-regression-test-with-logs.sh
+
+# Logs are saved to test-logs/ directory
 ```
 
 ## Test Details
@@ -286,50 +329,60 @@ Key integration points:
 - Notifications on failure
 - Environment-specific configurations"
 
+## Documentation
+
+This project includes comprehensive documentation in the `docs/` directory:
+
+### Guides (`docs/guides/`)
+- **CI-CD-GUIDE.md**: Complete guide for integrating tests into CI/CD pipelines (GitHub Actions, GitLab CI, Jenkins)
+- **TROUBLESHOOTING.md**: Common issues and solutions
+
+### Analysis Reports (`docs/analysis/`)
+- **CICD-COMPLETE-ANALYSIS.md**: Detailed analysis of the CI/CD implementation
+- **REGRESSION-TEST-RESULT.md**: Latest regression test execution results
+
+### Fix Records (`docs/fixes/`)
+- Historical records of bugs fixed and troubleshooting sessions
+- Useful for understanding project evolution and problem-solving approaches
+
+**Quick access**:
+```bash
+# Browse all documentation
+ls docs/*/
+
+# View CI/CD guide
+cat docs/guides/CI-CD-GUIDE.md
+
+# View latest test results
+cat docs/analysis/REGRESSION-TEST-RESULT.md
+```
+
 ## Troubleshooting
 
-### Issue: Cypress installation fails
+For detailed troubleshooting information, see **[docs/guides/TROUBLESHOOTING.md](docs/guides/TROUBLESHOOTING.md)**.
 
-**Solution**:
+### Quick Fixes
+
+**Cypress installation fails**:
 ```bash
-# Clear cache and reinstall
-npm cache clean --force
-rm -rf node_modules package-lock.json
-npm install
+npm cache clean --force && rm -rf node_modules package-lock.json && npm install
 ```
 
-### Issue: Tests fail with "baseUrl" error
-
-**Solution**:
-The tests use public APIs that should always be available. If issues persist:
+**Tests fail with "baseUrl" error**:
 ```bash
-# Verify internet connection
-curl https://jsonplaceholder.typicode.com/users
-
-# Check Cypress configuration
-cat cypress.config.js
+curl https://jsonplaceholder.typicode.com/users  # Verify connectivity
 ```
 
-### Issue: Docker build fails
-
-**Solution**:
+**Docker build fails**:
 ```bash
-# Ensure Docker is running
-docker ps
-
-# Build with no cache
-docker build --no-cache -f ../03-pipeline-examples/Dockerfile.cypress -t my-cypress-tests .
+docker ps  # Ensure Docker is running
+docker compose build --no-cache
 ```
 
-### Issue: Newman command not found
-
-**Solution**:
+**Newman command not found**:
 ```bash
-# Install Newman globally
 npm install -g newman newman-reporter-htmlextra
-
-# Or use local installation
-npx newman run postman/api-collection.json -e postman/environment.json
+# Or use: npx newman run postman/api-collection.json -e postman/environment.json
 ```
 
 ## Next Steps

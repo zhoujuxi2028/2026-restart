@@ -7,6 +7,11 @@
     "test:cypress": "cypress run",
     "test:cypress:headed": "cypress open",
     "test:newman": "newman run postman/api-collection.json -e postman/environment.json -r cli,htmlextra,junit --reporter-htmlextra-export newman/report.html --reporter-junit-export newman/junit.xml",
+    "docker:build": "docker compose build",
+    "docker:test": "docker compose up -d && docker compose wait cypress newman && docker compose down",
+    "docker:test:watch": "docker compose up",
+    "docker:test:logs": "./scripts/run-regression-test-with-logs.sh",
+    "docker:clean": "docker compose down -v",
     "lint": "eslint cypress/**/*.js",
     "ci:install": "npm ci",
     "ci:verify": "cypress verify"
