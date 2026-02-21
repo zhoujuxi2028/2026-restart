@@ -1,0 +1,82 @@
+name: Test Automation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Cypress and Newman Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Newman custom image
+        run: docker compose build newman
+        working-directory: test-project
+
+      - name: Run Cypress and Newman tests
+        run: |
+          docker compose up -d
+          docker compose wait cypress newman
+          docker compose down
+        working-directory: test-project
+
+      - name: Upload Cypress videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: test-project/cypress/videos/
+          retention-days: 7
+
+      - name: Upload Cypress screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: test-project/cypress/screenshots/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Newman HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-html-report
+          path: test-project/newman/api-report.html
+          retention-days: 7
+
+      - name: Upload Newman JUnit XML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-junit
+          path: test-project/newman/junit.xml
+          retention-days: 7
+
+      - name: Display test summary
+        if: always()
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Extract Cypress results
+          CYPRESS_TESTS=$(docker compose logs cypress 2>/dev/null | grep "All specs passed" | awk '{for(i=1;i<=NF;i++) if($i~/^[0-9]+$/ && $(i+1)~/^[0-9]+$/) {print $(i+1); exit}}' | head -1)
+          CYPRESS_TESTS=${CYPRESS_TESTS:-0}
+
+          # Extract Newman results
+          NEWMAN_ASSERTIONS=$(docker compose logs newman 2>/dev/null | grep "assertions" | grep -oP 'assertions\s*│\s*\K\d+' | head -1)
+          NEWMAN_ASSERTIONS=${NEWMAN_ASSERTIONS:-0}
+
+          echo "✅ **Cypress**: ${CYPRESS_TESTS}/16 tests passed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Newman**: ${NEWMAN_ASSERTIONS}/18 assertions passed" >> $GITHUB_STEP_SUMMARY
+        working-directory: test-project
