@@ -1,14 +1,23 @@
-name: Test Automation
+name: BASF Docker Test Automation
 
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
+      - '.github/workflows/basf-docker-test.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
+  workflow_dispatch:
+
+env:
+  WORKING_DIR: jobs/BASF/interview-prep/day-04-cicd-devops/test-project
 
 jobs:
-  test:
-    name: Run Cypress and Newman Tests
+  docker-tests:
+    name: Run Cypress and Newman Tests (Docker)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -21,29 +30,29 @@ jobs:
 
       - name: Build Newman custom image
         run: docker compose build newman
-        working-directory: test-project
+        working-directory: ${{ env.WORKING_DIR }}
 
       - name: Run Cypress and Newman tests
         run: |
           docker compose up -d
           docker compose wait cypress newman
           docker compose down
-        working-directory: test-project
+        working-directory: ${{ env.WORKING_DIR }}
 
       - name: Upload Cypress videos
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-videos
-          path: test-project/cypress/videos/
+          name: cypress-videos-${{ github.run_number }}
+          path: ${{ env.WORKING_DIR }}/cypress/videos/
           retention-days: 7
 
       - name: Upload Cypress screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-screenshots
-          path: test-project/cypress/screenshots/
+          name: cypress-screenshots-${{ github.run_number }}
+          path: ${{ env.WORKING_DIR }}/cypress/screenshots/
           retention-days: 7
           if-no-files-found: ignore
 
@@ -51,16 +60,16 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: newman-html-report
-          path: test-project/newman/api-report.html
+          name: newman-html-report-${{ github.run_number }}
+          path: ${{ env.WORKING_DIR }}/newman/api-report.html
           retention-days: 7
 
       - name: Upload Newman JUnit XML
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: newman-junit
-          path: test-project/newman/junit.xml
+          name: newman-junit-${{ github.run_number }}
+          path: ${{ env.WORKING_DIR }}/newman/junit.xml
           retention-days: 7
 
       - name: Display test summary
@@ -79,4 +88,4 @@ jobs:
 
           echo "✅ **Cypress**: ${CYPRESS_TESTS}/16 tests passed" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Newman**: ${NEWMAN_ASSERTIONS}/18 assertions passed" >> $GITHUB_STEP_SUMMARY
-        working-directory: test-project
+        working-directory: ${{ env.WORKING_DIR }}
