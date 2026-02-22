@@ -1,0 +1,14 @@
+{
+  "name": "basf-docker-testing-demo",
+  "version": "1.0.0",
+  "description": "Docker-based test automation demo for BASF interview",
+  "scripts": {
+    "test:cypress": "cypress run",
+    "test:newman": "newman run collections/API-Collection.json -e environments/docker-compose-env.json"
+  },
+  "devDependencies": {
+    "cypress": "^12.17.0",
+    "newman": "^6.0.0",
+    "newman-reporter-htmlextra": "^1.23.0"
+  }
+}
