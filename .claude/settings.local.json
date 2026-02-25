@@ -14,7 +14,8 @@
       "Bash(tree:*)",
       "mcp__thinking__sequentialthinking",
       "WebSearch",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

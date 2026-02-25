@@ -31,15 +31,10 @@ WORKDIR /e2e
 # This layer is only rebuilt when dependencies change, not when
 # test code changes, significantly speeding up builds.
 
-COPY package.json package-lock.json ./
+COPY package.json ./
 
-# Use 'npm ci' (clean install) instead of 'npm install'
-# Benefits:
-# - Faster in CI environments
-# - Uses exact versions from package-lock.json
-# - Removes existing node_modules first (clean state)
-# - Fails if package.json and package-lock.json are out of sync
-RUN npm ci --silent
+# Install dependencies
+RUN npm install --silent
 
 # ============================================
 # Copy Application Files

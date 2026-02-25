@@ -62,9 +62,9 @@ COPY collections/*.json /postman/collections/
 # Environment files (dev, staging, production)
 COPY environments/*.json /postman/environments/
 
-# Test data files (CSV, JSON)
-COPY data/*.json /postman/data/ 2>/dev/null || true
-COPY data/*.csv /postman/data/ 2>/dev/null || true
+# Test data files (CSV, JSON) - optional, skip if not exists
+# COPY data/*.json /postman/data/
+# COPY data/*.csv /postman/data/
 
 # ============================================
 # Environment Variables
