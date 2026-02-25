@@ -18,16 +18,16 @@ Cypress runs IN the browser (not outside like Selenium)
 
 ### Key Differences: Cypress vs Selenium
 
-| Aspect | Cypress | Selenium |
-|--------|---------|----------|
-| **Architecture** | Runs inside browser | Runs outside browser via WebDriver |
-| **Language** | JavaScript/TypeScript only | Multiple languages (Java, Python, etc.) |
-| **Waiting** | Automatic (built-in retry) | Manual (explicit waits needed) |
-| **Speed** | Faster (direct access) | Slower (network communication) |
-| **Browser Support** | Chrome, Firefox, Edge, Electron | All major browsers |
-| **Cross-domain** | Limited (same-origin) | No restrictions |
-| **Setup** | Simple (npm install) | Complex (drivers, configs) |
-| **Best for** | E2E testing, component testing | Cross-browser compatibility testing |
+| Aspect              | Cypress                         | Selenium                                |
+| ------------------- | ------------------------------- | --------------------------------------- |
+| **Architecture**    | Runs inside browser             | Runs outside browser via WebDriver      |
+| **Language**        | JavaScript/TypeScript only      | Multiple languages (Java, Python, etc.) |
+| **Waiting**         | Automatic (built-in retry)      | Manual (explicit waits needed)          |
+| **Speed**           | Faster (direct access)          | Slower (network communication)          |
+| **Browser Support** | Chrome, Firefox, Edge, Electron | All major browsers                      |
+| **Cross-domain**    | Limited (same-origin)           | No restrictions                         |
+| **Setup**           | Simple (npm install)            | Complex (drivers, configs)              |
+| **Best for**        | E2E testing, component testing  | Cross-browser compatibility testing     |
 
 ### Essential Cypress Commands
 ```javascript
