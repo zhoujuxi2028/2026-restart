@@ -125,6 +125,9 @@ def io_task():
 
 **问题代码**：
 ```python
+
+import threading
+
 counter = 0
 
 def increment():
@@ -1296,15 +1299,15 @@ print("测试完成！")
 
 #### 复习要点
 1. **线程基础回顾**（5分钟）
-   - [ ] threading.Thread的创建方式
-   - [ ] start()、join()、is_alive()方法
-   - [ ] 守护线程的概念
+   - [x] threading.Thread的创建方式
+   - [x] start()、join()、is_alive()方法
+   - [x] 守护线程的概念
 
 2. **GIL机制复习**（10分钟）
-   - [ ] 什么是GIL？作用是什么？
-   - [ ] GIL对CPU密集型任务的影响（性能数据回顾）
-   - [ ] GIL对IO密集型任务的影响
-   - [ ] 如何选择threading vs multiprocessing
+   - [x] 什么是GIL？作用是什么？
+   - [x] GIL对CPU密集型任务的影响（性能数据回顾）
+   - [x] GIL对IO密集型任务的影响
+   - [x] 如何选择threading vs multiprocessing
 
 3. **今日引入问题**（5分钟）
    ```python
@@ -1333,10 +1336,10 @@ print("测试完成！")
 #### 第223题：Lock锁 ⭐⭐⭐⭐⭐（35分钟）
 
 **学习目标**：
-- [ ] 理解线程安全问题的本质
-- [ ] 掌握Lock的使用方法
-- [ ] 了解Lock的工作原理
-- [ ] 掌握上下文管理器的使用
+- [x] 理解线程安全问题的本质
+- [x] 掌握Lock的使用方法
+- [x] 了解Lock的工作原理
+- [x] 掌握上下文管理器的使用
 
 **理论学习**（15分钟）
 
