@@ -17,6 +17,7 @@ docs/
 **Purpose**: Step-by-step guides and reference documentation
 
 - `CI-CD-GUIDE.md` - Comprehensive guide for CI/CD pipeline setup and integration
+- `SMART-WORKFLOW-GUIDE.md` - Detailed guide for smart-ci.yml workflow architecture and decision logic
 - `TROUBLESHOOTING.md` - Common issues and solutions for the project
 
 **When to add**: Create new guides when documenting workflows, setup procedures, or best practices.
