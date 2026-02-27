@@ -6,7 +6,10 @@
     "test": "npm run test:cypress && npm run test:newman",
     "test:cypress": "cypress run",
     "test:cypress:headed": "cypress open",
+    "test:cypress:report": "npm run test:cypress || true && npm run report:merge && npm run report:generate",
     "test:newman": "newman run postman/api-collection.json -e postman/environment.json -r cli,htmlextra,junit --reporter-htmlextra-export newman/report.html --reporter-junit-export newman/junit.xml",
+    "report:merge": "mochawesome-merge cypress/reports/mochawesome/*.json > cypress/reports/mochawesome/report.json || echo 'No JSON files to merge'",
+    "report:generate": "marge cypress/reports/mochawesome/report.json --reportDir cypress/reports/mochawesome --inline || echo 'Report generation skipped'",
     "docker:build": "docker compose build",
     "docker:test": "docker compose up -d && docker compose wait cypress newman && docker compose down",
     "docker:test:watch": "docker compose up",
@@ -28,10 +31,14 @@
   "license": "MIT",
   "devDependencies": {
     "cypress": "^13.6.0",
-    "newman": "^6.1.0",
-    "newman-reporter-htmlextra": "^1.23.0",
+    "cypress-multi-reporters": "^2.0.5",
     "eslint": "^8.55.0",
-    "eslint-plugin-cypress": "^2.15.1"
-  },
-  "dependencies": {}
+    "eslint-plugin-cypress": "^2.15.1",
+    "mocha-junit-reporter": "^2.2.1",
+    "mochawesome": "^7.1.4",
+    "mochawesome-merge": "^5.1.1",
+    "mochawesome-report-generator": "^6.3.2",
+    "newman": "^6.1.0",
+    "newman-reporter-htmlextra": "^1.23.0"
+  }
 }

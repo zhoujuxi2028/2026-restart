@@ -29,8 +29,30 @@ module.exports = defineConfig({
     // Test isolation
     testIsolation: true,
 
-    // Reporter configuration for CI/CD
-    reporter: 'spec',  // Simple built-in reporter (sufficient for demo)
+    // Multi-reporter configuration for comprehensive test reporting
+    reporter: 'cypress-multi-reporters',
+    reporterOptions: {
+      reporterEnabled: 'spec, mocha-junit-reporter, mochawesome',
+
+      // JUnit reporter for CI integration
+      mochaJunitReporterReporterOptions: {
+        mochaFile: 'cypress/reports/junit/results-[hash].xml',
+        toConsole: false
+      },
+
+      // Mochawesome for beautiful HTML reports
+      mochawesomeReporterOptions: {
+        reportDir: 'cypress/reports/mochawesome',
+        overwrite: false,
+        html: false,  // Will generate via marge
+        json: true,   // Generate JSON for merging
+        charts: true,
+        reportPageTitle: 'BASF QA Automation Test Report',
+        embeddedScreenshots: true,
+        inlineAssets: true,
+        saveAllAttempts: true  // Show retry attempts
+      }
+    },
 
     setupNodeEvents(on, config) {
       // implement node event listeners here
