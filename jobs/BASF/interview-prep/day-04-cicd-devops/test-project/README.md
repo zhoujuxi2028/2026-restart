@@ -167,12 +167,55 @@ npm run docker:test:logs
 
 ## CI/CD Integration
 
-### GitHub Actions
+### GitHub Actions Workflows
 
-Copy the configuration to your repository:
+This repository includes **production-ready GitHub Actions workflows** located in `.github/workflows/`:
+
+#### 🚀 smart-ci.yml (Recommended)
+**Intelligent workflow with auto mode selection**
+- **develop branch**: Parallel mode with caching (~1.5 min)
+- **main branch**: Docker mode for consistency (~6-8 min)
+- **Manual trigger**: Choose execution mode and test type
+
 ```bash
-mkdir -p .github/workflows
-cp ../03-pipeline-examples/github-actions.yml .github/workflows/test.yml
+# Workflow triggers automatically on push/PR to main or develop branches
+# Or manually trigger from GitHub Actions UI with custom options
+```
+
+#### 🐳 integration-docker.yml (Backup/Demo)
+**Docker containerized testing** - Manual trigger only
+- Demonstrates Docker expertise
+- Guarantees environment consistency
+- Best for production validation
+
+#### ⚡ ci-parallel.yml (Backup/Demo)
+**Parallel execution with caching** - Manual trigger only
+- Shows performance optimization skills
+- 70% faster with cache hits
+- Best for rapid development feedback
+
+**📖 Detailed Comparison**: See [WORKFLOW-COMPARISON.md](/.github/workflows/WORKFLOW-COMPARISON.md) for:
+- Use case scenarios
+- Performance benchmarks
+- Interview talking points
+- Troubleshooting guide
+
+### Using the Workflows
+
+The `smart-ci.yml` workflow is ready to use out of the box:
+```bash
+# 1. Push to develop branch (triggers parallel mode)
+git checkout -b feature/my-feature
+git push origin feature/my-feature  # PR to develop
+
+# 2. Push to main branch (triggers Docker mode)
+git checkout main
+git merge develop
+git push origin main
+
+# 3. Manual trigger with custom options
+# Go to: Actions → Smart CI/CD → Run workflow
+# Select: execution_mode (auto/parallel/docker) and test_type (all/cypress/newman)
 ```
 
 ### GitLab CI

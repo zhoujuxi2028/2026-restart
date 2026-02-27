@@ -3,31 +3,48 @@
 ## Quick Start (5 Minutes)
 
 ### What's Ready
-✅ **GitHub Actions** - `/.github/workflows/test.yml` (production-ready)
+✅ **Smart CI Workflow** - `/.github/workflows/smart-ci.yml` (production-ready, auto mode selection)
+✅ **Docker Mode** - `/.github/workflows/integration-docker.yml` (manual trigger)
+✅ **Parallel Mode** - `/.github/workflows/ci-parallel.yml` (manual trigger)
 ✅ **Docker Compose** - `./docker-compose.yml` (fully tested)
 ✅ **Test Results** - Newman: 18/18 ✅ | Cypress: 16/16 ✅
 
 ### Verify Locally
 ```bash
-# Test Newman API
-docker compose run --rm newman run api-collection.json -e environment.json --reporters cli
+# Quick test both suites
+npm test
 
-# Test Cypress E2E
-docker compose run --rm cypress npx cypress run
+# Or test individually:
+npm run test:cypress    # Cypress E2E tests
+npm run test:newman     # Newman API tests
+
+# Or use Docker:
+docker compose up       # Runs all tests in containers
+docker compose down
 
 # View Newman report
 xdg-open newman/report.html
 ```
 
-### Deploy to GitHub
+### Using GitHub Actions
+The smart CI workflow is **already configured** and will trigger automatically:
+
 ```bash
-cd /home/michael/repos/2026-restart
-git add .github/workflows/test.yml
-git commit -m "ci: add GitHub Actions workflow for test automation"
+# On develop branch (triggers parallel mode - fast feedback)
+git checkout -b feature/my-feature
+git push origin feature/my-feature
+
+# On main branch (triggers Docker mode - consistency)
+git checkout main
+git merge develop
 git push origin main
 
-# Then visit: https://github.com/zhoujuxi2028/2026-restart/actions
+# Manual trigger with options:
+# Visit: https://github.com/zhoujuxi2028/2026-restart/actions
+# Select: Smart CI/CD → Run workflow → Choose mode and test type
 ```
+
+**📖 For detailed workflow comparison**: See `/.github/workflows/WORKFLOW-COMPARISON.md`
 
 ---
 
