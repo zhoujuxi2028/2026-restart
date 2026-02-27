@@ -1,16 +1,18 @@
-name: BASF Docker Test Automation
+name: Integration Tests (Docker) [Manual Only]
 
+# 此工作流已被 smart-ci.yml 替代，仅保留手动触发作为备用
+# 如需自动运行，请使用 smart-ci.yml
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
-      - '.github/workflows/basf-docker-test.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
   workflow_dispatch:
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
+  #     - '.github/workflows/integration-docker.yml'
+  # pull_request:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
 
 env:
   WORKING_DIR: jobs/BASF/interview-prep/day-04-cicd-devops/test-project

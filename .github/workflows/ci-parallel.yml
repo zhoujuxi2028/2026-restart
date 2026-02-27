@@ -6,25 +6,13 @@
 # on every push and pull request, ensuring code quality before merging. The workflow is
 # optimized for speed with dependency caching and parallel execution."
 
-name: Test Automation CI
+name: CI/CD Pipeline (Parallel) [Manual Only]
+
+# 此工作流已被 smart-ci.yml 替代，仅保留手动触发作为备用
+# 如需自动运行，请使用 smart-ci.yml
 
 # Workflow triggers
 on:
-  push:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
-      - '.github/workflows/test.yml'
-
-  pull_request:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
-
   # Allow manual workflow dispatch for testing
   workflow_dispatch:
     inputs:

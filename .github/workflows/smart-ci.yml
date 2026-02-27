@@ -1,0 +1,317 @@
+# Smart CI/CD Workflow - 智能选择执行模式
+# 根据分支和触发条件自动选择最优执行策略
+#
+# 策略:
+# - develop 分支: 使用缓存并行模式（快速反馈）
+# - main 分支: 使用 Docker 模式（环境一致性）
+# - 手动触发: 可选择执行模式
+
+name: Smart CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
+      - '.github/workflows/smart-ci.yml'
+
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project/**'
+
+  workflow_dispatch:
+    inputs:
+      execution_mode:
+        description: '执行模式'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto      # 自动选择（develop=parallel, main=docker）
+          - parallel  # 强制并行模式
+          - docker    # 强制 Docker 模式
+      test_type:
+        description: '测试类型（仅 parallel 模式有效）'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - cypress
+          - newman
+
+env:
+  NODE_VERSION: '18'
+  WORKING_DIR: 'jobs/BASF/interview-prep/day-04-cicd-devops/test-project'
+
+jobs:
+  # 决策 Job: 确定使用哪种执行模式
+  decide-mode:
+    name: Decide Execution Mode
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.decide.outputs.mode }}
+
+    steps:
+      - name: Decide execution mode
+        id: decide
+        run: |
+          # 手动触发且指定模式
+          if [ "${{ github.event.inputs.execution_mode }}" != "" ] && [ "${{ github.event.inputs.execution_mode }}" != "auto" ]; then
+            MODE="${{ github.event.inputs.execution_mode }}"
+          # 自动模式: main 分支用 Docker，其他用 parallel
+          elif [ "${{ github.ref_name }}" = "main" ]; then
+            MODE="docker"
+          else
+            MODE="parallel"
+          fi
+
+          echo "mode=${MODE}" >> $GITHUB_OUTPUT
+          echo "🎯 Execution mode: ${MODE}"
+          echo "📍 Branch: ${{ github.ref_name }}"
+          echo "🔔 Trigger: ${{ github.event_name }}"
+
+  # ===== Parallel 模式 =====
+  parallel-install:
+    name: Install Dependencies (Parallel)
+    runs-on: ubuntu-latest
+    needs: decide-mode
+    if: needs.decide-mode.outputs.mode == 'parallel'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '${{ env.WORKING_DIR }}/package-lock.json'
+
+      - name: Cache dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.WORKING_DIR }}/node_modules
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.WORKING_DIR)) }}
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+          npx cypress verify
+
+  parallel-test-cypress:
+    name: Cypress Tests (Parallel)
+    runs-on: ubuntu-latest
+    needs: [decide-mode, parallel-install]
+    if: |
+      needs.decide-mode.outputs.mode == 'parallel' &&
+      (github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'cypress' || github.event.inputs.test_type == '')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.WORKING_DIR }}/node_modules
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.WORKING_DIR)) }}
+
+      - name: Run Cypress tests
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm run test:cypress
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-results-${{ github.run_number }}
+          path: |
+            ${{ env.WORKING_DIR }}/cypress/videos
+            ${{ env.WORKING_DIR }}/cypress/screenshots
+          retention-days: 7
+
+  parallel-test-newman:
+    name: Newman Tests (Parallel)
+    runs-on: ubuntu-latest
+    needs: [decide-mode, parallel-install]
+    if: |
+      needs.decide-mode.outputs.mode == 'parallel' &&
+      (github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'newman' || github.event.inputs.test_type == '')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.WORKING_DIR }}/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles(format('{0}/package-lock.json', env.WORKING_DIR)) }}
+
+      - name: Run Newman tests
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm run test:newman
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-results-${{ github.run_number }}
+          path: ${{ env.WORKING_DIR }}/newman
+          retention-days: 7
+
+  # ===== Docker 模式 =====
+  docker-tests:
+    name: Integration Tests (Docker)
+    runs-on: ubuntu-latest
+    needs: decide-mode
+    if: needs.decide-mode.outputs.mode == 'docker'
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Newman custom image
+        run: docker compose build newman
+        working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Run tests in Docker
+        run: |
+          docker compose up -d
+          docker compose wait cypress newman
+          docker compose down
+        working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-test-results-${{ github.run_number }}
+          path: |
+            ${{ env.WORKING_DIR }}/cypress/videos/
+            ${{ env.WORKING_DIR }}/cypress/screenshots/
+            ${{ env.WORKING_DIR }}/newman/
+          retention-days: 7
+
+      - name: Display test summary
+        if: always()
+        run: |
+          echo "## 🐳 Docker Mode Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          CYPRESS_TESTS=$(docker compose logs cypress 2>/dev/null | grep "All specs passed" | awk '{for(i=1;i<=NF;i++) if($i~/^[0-9]+$/ && $(i+1)~/^[0-9]+$/) {print $(i+1); exit}}' | head -1)
+          NEWMAN_ASSERTIONS=$(docker compose logs newman 2>/dev/null | grep "assertions" | grep -oP 'assertions\s*│\s*\K\d+' | head -1)
+          echo "✅ Cypress: ${CYPRESS_TESTS:-0}/16 tests" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Newman: ${NEWMAN_ASSERTIONS:-0}/18 assertions" >> $GITHUB_STEP_SUMMARY
+        working-directory: ${{ env.WORKING_DIR }}
+
+  # 统一的测试摘要
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [decide-mode, parallel-test-cypress, parallel-test-newman, docker-tests]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          MODE="${{ needs.decide-mode.outputs.mode }}"
+
+          echo "## 🎯 Test Automation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Execution Mode**: ${MODE}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${MODE}" = "parallel" ]; then
+            echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+
+            if [ "${{ needs.parallel-test-cypress.result }}" = "success" ] || [ "${{ needs.parallel-test-cypress.result }}" = "skipped" ]; then
+              echo "| Cypress E2E | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Cypress E2E | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+
+            if [ "${{ needs.parallel-test-newman.result }}" = "success" ] || [ "${{ needs.parallel-test-newman.result }}" = "skipped" ]; then
+              echo "| Newman API | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Newman API | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            if [ "${{ needs.docker-tests.result }}" = "success" ]; then
+              echo "✅ **Docker Integration Tests**: All passed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Docker Integration Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 **Why this mode?**" >> $GITHUB_STEP_SUMMARY
+          if [ "${MODE}" = "parallel" ]; then
+            echo "- Fast feedback for development (1-2 min with cache)" >> $GITHUB_STEP_SUMMARY
+            echo "- Parallel execution saves time" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Environment consistency for production" >> $GITHUB_STEP_SUMMARY
+            echo "- Docker ensures identical test environment" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check overall status
+        if: |
+          (needs.decide-mode.outputs.mode == 'parallel' &&
+           (needs.parallel-test-cypress.result == 'failure' || needs.parallel-test-newman.result == 'failure')) ||
+          (needs.decide-mode.outputs.mode == 'docker' && needs.docker-tests.result == 'failure')
+        run: |
+          echo "❌ Tests failed"
+          exit 1
+
+# 面试讨论要点:
+#
+# 1. 智能决策:
+#    "这个工作流会根据分支自动选择最优策略：
+#     - develop 分支用 parallel 模式，1-2 分钟快速反馈
+#     - main 分支用 docker 模式，保证生产环境一致性
+#     这体现了我对效率和质量的权衡思维。"
+#
+# 2. 灵活性:
+#    "支持手动触发时覆盖自动决策，用于特殊场景：
+#     - 需要在 develop 分支验证 Docker 环境
+#     - 需要在 main 分支快速验证修复
+#     这提供了灵活性而不牺牲自动化。"
+#
+# 3. 代码复用:
+#    "虽然合并了两个工作流，但通过条件执行保持了清晰的职责分离。
+#     每个 job 只做一件事，便于维护和调试。"
+#
+# 4. 可观测性:
+#    "统一的 test-summary 会根据执行模式生成不同的报告，
+#     提供一致的用户体验，同时保留各模式的特色信息。"
