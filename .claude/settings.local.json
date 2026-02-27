@@ -15,7 +15,12 @@
       "mcp__thinking__sequentialthinking",
       "WebSearch",
       "Bash(mv:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git rm:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run test:cypress:report:*)",
+      "Bash(head:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
