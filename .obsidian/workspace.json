@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "python/interview/TRAINING_PLAN_2026-02-26.md",
+                "file": "jobs/shein/day1-学习材料.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "TRAINING_PLAN_2026-02-26"
+              "title": "day1-学习材料"
             }
           }
         ]
@@ -183,17 +183,27 @@
       "bases:Create new base": false
     }
   },
-  "active": "c9e22de7f1088848",
+  "active": "fc173cb44fa07b37",
   "lastOpenFiles": [
+    "jobs/trendmicro/客户经理与客户沟通要点及反馈要求-v1.1.docx",
+    "jobs/trendmicro",
     "jobs/shein/资深测试工程师.md",
+    "jobs/BASF/7133.md",
+    "jobs/BASF/007204.md",
+    "jobs/BASF/Chat with HR.md",
+    "jobs/BASF/CLAUDE.md",
+    "jobs/shein/学习计划-精简版.md",
+    "jobs/shein/今日学习-Day1.md",
     "jobs/shein/学习进度追踪.md",
     "jobs/shein/学习进度追踪-精简版.md",
-    "jobs/shein/学习计划-精简版.md",
+    "jobs/shein/day1-学习材料.md",
+    "jobs/shein/01-Kubernetes深度/Day1-K8s基础概念.md",
+    "jobs/Citrix/R104312.md",
+    "python/interview/TRAINING_PLAN_2026-02-26.md",
     "jobs/shein",
     "python/interview/LEARNING_PROGRESS_2026-02-25.md",
     "python/interview/FAQ.md",
     "python/interview/TRAINING_PLAN_2026-02-25.md",
-    "python/interview/TRAINING_PLAN_2026-02-26.md",
     "python/interview/README.md",
     "python/interview/demos/2026-02-26/demo_multiprocessing.py",
     "python/interview/demos/2026-02-26/demo_threading.py",
@@ -204,23 +214,13 @@
     "python/interview/LEARNING_SUMMARY_2026-01-23.md",
     "python/interview/LEARNING_PROGRESS_DAY23.md",
     "python/interview/TODAY_LEARNING_GUIDE.md",
-    "jobs/BASF/007204.md",
-    "jobs/BASF/7133.md",
-    "jobs/Citrix/R104312.md",
     "jobs/BASF/interview-prep/day-08-javascript-performance/05-checklist.md",
     "jobs/BASF/interview-prep/day-08-javascript-performance/04-quick-reference.md",
     "jobs/BASF/interview-prep/day-08-javascript-performance/02-interview-qa.md",
     "jobs/BASF/interview-prep/day-08-javascript-performance/01-core-concepts.md",
     "jobs/BASF/interview-prep/day-06-devops-containers/03-docker-examples/VERIFICATION-RESULTS.md",
-    "jobs/BASF/interview-prep/day-06-devops-containers/03-docker-examples/CLAUDE.md",
     "jobs/BASF/interview-prep/day-04-cicd-devops/test-project/create-test-pr.sh",
-    "jobs/BASF/Chat with HR.md",
-    "jobs/BASF/CLAUDE.md",
     "jobs/Citrix",
-    "jobs/citrix/R104312.md",
-    "jobs/BASF/interview-prep/SOFTWARE-INSTALLATION.md",
-    "jobs/citrix",
-    "jobs/BASF/interview-prep/day-10-final-preparation/README.md",
     "jobs/BASF/interview-prep/node_modules/getos/imgs/logo.svg",
     "jobs/BASF/interview-prep/node_modules/getos/imgs/logo.png",
     "jobs/BASF/interview-prep/node_modules/istanbul-reports/lib/html-spa/assets/sort-arrow-sprite.png",
