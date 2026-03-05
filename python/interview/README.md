@@ -1,98 +1,76 @@
-# Python 经典面试题 300 道
+# Python Interview 300
 
-开始日期：2026-01-23
-当前学习：今日重点学习10个核心面试概念
+300 Python interview questions covering basics to advanced topics.
 
-## 学习目标
-
-通过系统学习300道Python面试题，全面掌握Python编程技能，为面试和实际工作打下坚实基础。
-
-## 题库结构
-
-本题库按照主题和难度分类，共300道题目：
-
-### 📚 基础部分（100题）
-1. **01-基础语法.md** (30题) - 变量、数据类型、运算符、控制流
-2. **02-数据结构.md** (35题) - 列表、元组、字典、集合
-3. **03-字符串操作.md** (20题) - 字符串处理、格式化
-4. **04-函数基础.md** (15题) - 函数定义、参数、作用域
-
-### 🔥 进阶部分（100题）
-5. **05-面向对象.md** (30题) - 类、继承、多态、魔法方法
-6. **06-函数式编程.md** (20题) - lambda、map、filter、装饰器
-7. **07-异常处理.md** (15题) - try-except、自定义异常
-8. **08-文件IO.md** (15题) - 文件读写、上下文管理器
-9. **09-模块与包.md** (20题) - import、包管理、命名空间
-
-### 💎 高级部分（70题）
-10. **10-迭代器与生成器.md** (20题) - iter、yield、协程
-11. **11-多线程多进程.md** (20题) - threading、multiprocessing、GIL
-12. **12-网络编程.md** (15题) - socket、HTTP、异步IO
-13. **13-正则表达式.md** (15题) - re模块、模式匹配
-
-### 🚀 实战部分（30题）
-14. **14-数据库操作.md** (10题) - SQLite、MySQL、ORM
-15. **15-Web框架.md** (10题) - Flask、Django基础
-16. **16-数据分析.md** (10题) - NumPy、Pandas基础
-
-## 学习计划
-
-### 第一阶段：基础巩固（Day 1-10）
-- 每天完成10道基础题
-- 重点：语法、数据结构、函数
-
-### 第二阶段：进阶提升（Day 11-20）
-- 每天完成10道进阶题
-- 重点：面向对象、函数式编程、异常处理
-
-### 第三阶段：高级突破（Day 21-27）
-- 每天完成10道高级题
-- 重点：生成器、并发编程、网络编程
-
-### 第四阶段：实战演练（Day 28-30）
-- 每天完成10道实战题
-- 重点：综合应用、项目经验
-
-## 使用说明
-
-1. **按顺序学习**：建议从基础开始，循序渐进
-2. **动手实践**：每道题都要自己编写代码验证
-3. **理解原理**：不仅要知道答案，更要理解为什么
-4. **记录笔记**：在每个文件的"学习笔记"区域记录心得
-5. **定期复习**：完成后定期回顾重点题目
-
-## 学习进度跟踪
-
-### 📅 2026-01-23: 今日学习10个核心概念
-**重点**: 面试高频知识点巩固
-
-- [🔄] 01-基础语法.md (开始学习变量与数据类型)
-- [🔄] 02-数据结构.md (开始学习列表与字典)
-- [🔄] 03-字符串操作.md (开始学习字符串处理)
-- [🔄] 04-函数基础.md (开始学习函数机制)
-- [🔄] 05-面向对象.md (开始学习OOP核心)
-- [🔄] 06-函数式编程.md (开始学习装饰器)
-- [🔄] 07-异常处理.md (开始学习异常机制)
-- [ ] 08-文件IO.md (0/15)
-- [ ] 09-模块与包.md (0/20)
-- [🔄] 10-迭代器与生成器.md (开始学习迭代器与生成器)
-- [ ] 11-多线程多进程.md (0/20)
-- [ ] 12-网络编程.md (0/15)
-- [ ] 13-正则表达式.md (0/15)
-- [ ] 14-数据库操作.md (0/10)
-- [ ] 15-Web框架.md (0/10)
-- [ ] 16-数据分析.md (0/10)
-
-**今日进度：开始学习核心概念/300**
-**总体进度：面试准备阶段 - 第1天**
-
-## 推荐资源
-
-- Python官方文档：https://docs.python.org/zh-cn/3/
-- LeetCode Python题库
-- 《流畅的Python》
-- 《Python Cookbook》
+**Start**: 2026-01-23
 
 ---
 
-**开始你的Python进阶之旅吧！** 💪
+## Topics
+
+### Basics (100 questions)
+| File | Topics | Questions |
+|------|--------|-----------|
+| 01-基础语法.md | Variables, types, operators, control flow | 30 |
+| 02-数据结构.md | List, tuple, dict, set | 35 |
+| 03-字符串操作.md | String processing, formatting | 20 |
+| 04-函数基础.md | Functions, parameters, scope | 15 |
+
+### Advanced (100 questions)
+| File | Topics | Questions |
+|------|--------|-----------|
+| 05-面向对象.md | Classes, inheritance, magic methods | 30 |
+| 06-函数式编程.md | Lambda, map, filter, decorators | 20 |
+| 07-异常处理.md | Try-except, custom exceptions | 15 |
+| 08-文件IO.md | File operations, context managers | 15 |
+| 09-模块与包.md | Import, packages, namespaces | 20 |
+
+### Expert (70 questions)
+| File | Topics | Questions |
+|------|--------|-----------|
+| 10-迭代器与生成器.md | Iter, yield, coroutines | 20 |
+| 11-多线程多进程.md | Threading, multiprocessing, GIL | 20 |
+| 12-网络编程.md | Socket, HTTP, async IO | 15 |
+| 13-正则表达式.md | Re module, pattern matching | 15 |
+
+### Practical (30 questions)
+| File | Topics | Questions |
+|------|--------|-----------|
+| 14-数据库操作.md | SQLite, MySQL, ORM | 10 |
+| 15-Web框架.md | Flask, Django basics | 10 |
+| 16-数据分析.md | NumPy, Pandas basics | 10 |
+
+---
+
+## Quick Start
+
+**30-Day Plan**
+- Days 1-10: Basics (01-04)
+- Days 11-20: Advanced (05-09)
+- Days 21-27: Expert (10-13)
+- Days 28-30: Practical (14-16)
+
+**Daily Approach**
+1. Read theory
+2. Write code
+3. Understand why, not just what
+4. Review regularly
+
+---
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| LEARNING_PROGRESS.md | Progress tracking & code templates |
+| TRAINING_PLANS.md | Concurrency quick reference |
+| FAQ.md | Common questions |
+
+---
+
+## Resources
+
+- [Python Docs](https://docs.python.org/zh-cn/3/)
+- LeetCode Python
+- "Fluent Python"
+- "Python Cookbook"
