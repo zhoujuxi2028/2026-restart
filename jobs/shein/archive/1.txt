@@ -1,0 +1,67 @@
+**短期（1-2周）**                                                                                                                                                                                        
+
+  1. **Kubernetes核心概念**                                                                                                                                                                              
+
+    - Pod、Service、Deployment                                                                                                                                                                          
+
+    - ConfigMap、Secret                                                                                                                                                                                 
+
+    - Namespace、RBAC                                                                                                                                                                                   
+
+  2. **K8s测试基础**                                                                                                                                                                                        
+
+    - 使用kubectl进行测试                                                                                                                                                                               
+
+    - 部署测试环境                                                                                                                                                                                      
+
+    - 基础故障排查                                                                                                                                                                                      
+
+  **中期（3-4周）**                                                                                                                                                                                         
+
+  3. **K8s进阶**                                                                                                                                                                                            
+
+    - CA/HPA自动扩缩测试                                                                                                                                                                                
+
+    - 集群管控平台                                                                                                                                                                                      
+
+    - 监控与日志                                                                                                                                                                                        
+
+  4. **混沌工程入门**                                                                                                                                                                                       
+
+    - Chaos Mesh                                                                                                                                                                                        
+
+    - 故障注入实践                                                                                                                                                                                      
+
+  **长期（持续）**                                                                                                                                                                                          
+
+  5. **云原生生态**                                                                                                                                                                                         
+
+    - Helm、Istio                                                                                                                                                                                       
+
+    - 可观测性（Prometheus/Grafana）                                                                                                                                                                    
+
+    - GitOps（ArgoCD）                                                                                                                                                                                  
+
+  ---                                                                                                                                                                                                   
+
+  **💡 面试准备重点**                                                                                                                                                                                       
+
+  **必答题**                                                                                                                                                                                                
+
+  1. Kubernetes集群架构和组件                                                                                                                                                                           
+
+  2. Pod生命周期和调度策略                                                                                                                                                                              
+
+  3. HPA/CA的工作原理和测试方法                                                                                                                                                                         
+
+  4. 如何测试分布式系统                                                                                                                                                                                 
+
+  5. 混沌工程实践经验                                                                                                                                                                                   
+
+  **项目准备**                                                                                                                                                                                              
+
+  - 展示CI/CD项目（cicd-demo）                                                                                                                                                                          
+
+  - 准备K8s测试案例                                                                                                                                                                                     
+
+  - 稳定性测试经验分享
