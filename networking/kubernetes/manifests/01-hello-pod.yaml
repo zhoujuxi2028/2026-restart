@@ -1,0 +1,26 @@
+# 第一个 Pod 示例
+# 创建: kubectl apply -f 01-hello-pod.yaml
+# 查看: kubectl get pod hello-pod
+# 删除: kubectl delete -f 01-hello-pod.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hello-pod
+  labels:
+    app: hello
+    env: learning
+spec:
+  containers:
+  - name: nginx
+    image: nginx:alpine
+    ports:
+    - containerPort: 80
+      name: http
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "100m"
+      limits:
+        memory: "128Mi"
+        cpu: "200m"

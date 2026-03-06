@@ -1,0 +1,42 @@
+# Service 示例 - 暴露服务
+# 前提: 先创建 02-hello-deployment.yaml
+# 创建: kubectl apply -f 03-hello-service.yaml
+# 查看: kubectl get service hello-service
+# 访问: kubectl port-forward service/hello-service 8080:80
+#       浏览器打开 http://localhost:8080
+# 删除: kubectl delete -f 03-hello-service.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-service
+  labels:
+    app: hello
+spec:
+  type: ClusterIP
+  selector:
+    app: hello
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+
+---
+# NodePort 类型 Service（可选）
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-service-nodeport
+  labels:
+    app: hello
+spec:
+  type: NodePort
+  selector:
+    app: hello
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: 30080
+    protocol: TCP

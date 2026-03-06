@@ -1,0 +1,210 @@
+# NetworkPolicy 示例 - 微服务网络隔离
+# 场景：三层应用架构（frontend → backend → database）
+# 创建: kubectl apply -f 04-network-policy-demo.yaml
+
+---
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+
+---
+# Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+        tier: backend
+    spec:
+      containers:
+      - name: app
+        image: nginx:alpine
+        ports:
+        - containerPort: 8080
+
+---
+# Database Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+      tier: database
+  template:
+    metadata:
+      labels:
+        app: database
+        tier: database
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        ports:
+        - containerPort: 6379
+
+---
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+    targetPort: 80
+
+---
+# Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 8080
+    targetPort: 8080
+
+---
+# Database Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-service
+spec:
+  selector:
+    app: database
+  ports:
+  - port: 6379
+    targetPort: 6379
+
+---
+# NetworkPolicy 1: Backend 只接受来自 Frontend 的流量
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-policy
+spec:
+  podSelector:
+    matchLabels:
+      tier: backend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: frontend
+    ports:
+    - protocol: TCP
+      port: 8080
+
+---
+# NetworkPolicy 2: Database 只接受来自 Backend 的流量
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-policy
+spec:
+  podSelector:
+    matchLabels:
+      tier: database
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: backend
+    ports:
+    - protocol: TCP
+      port: 6379
+
+---
+# NetworkPolicy 3: Frontend 对外开放
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-policy
+spec:
+  podSelector:
+    matchLabels:
+      tier: frontend
+  policyTypes:
+  - Ingress
+  ingress:
+  - {}  # 允许所有入站流量
+
+---
+# NetworkPolicy 4: 默认拒绝所有流量（可选，谨慎使用）
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: default-deny-all
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Ingress
+#   - Egress
+
+# 测试命令：
+# 1. 部署应用
+#    kubectl apply -f 04-network-policy-demo.yaml
+#
+# 2. 查看所有资源
+#    kubectl get pods,svc,networkpolicy
+#
+# 3. 测试 Frontend 到 Backend 的连接（应该成功）
+#    kubectl exec -it <frontend-pod> -- wget -O- http://backend-service:8080
+#
+# 4. 测试 Frontend 到 Database 的连接（应该失败）
+#    kubectl exec -it <frontend-pod> -- telnet database-service 6379
+#
+# 5. 测试 Backend 到 Database 的连接（应该成功）
+#    kubectl exec -it <backend-pod> -- telnet database-service 6379
+#
+# 6. 查看网络策略详情
+#    kubectl describe networkpolicy backend-policy
+#
+# 7. 清理资源
+#    kubectl delete -f 04-network-policy-demo.yaml
+
+# 注意：
+# - NetworkPolicy 需要 CNI 插件支持（如 Calico、Cilium）
+# - Docker Desktop 内置 K8S 默认不支持 NetworkPolicy
+# - 需要安装支持的 CNI 插件才能使网络策略生效

@@ -54,3 +54,4 @@ newman/
 
 # Docker volumes and data
 **/docker-data/
+.obsidian/

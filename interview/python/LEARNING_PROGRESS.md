@@ -14,6 +14,7 @@
 | 2026-02-25 | Thread sync (Lock, Condition) | Completed |
 | 2026-02-26 | RLock, Event, ThreadPool | Completed |
 | 2026-03-02 | Multiprocessing | Completed |
+| 2026-03-05 | Asyncio basics | In Progress |
 
 ---
 
